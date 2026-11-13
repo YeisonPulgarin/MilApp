@@ -1651,9 +1651,10 @@
     enlazarInputsDinero(document.getElementById('pantalla-dashboard'));
 
     // Eventos de abonos y acciones
-    document.querySelectorAll('[data-toggle-abono]').forEach(btn => {
+   document.querySelectorAll('[data-toggle-abono]').forEach(btn => {
       btn.onclick = () => {
-        const caja = document.getElementById(`caja-abono-${btn.dataset.toggleAbono}`);
+        const tarjeta = btn.closest('.tarjeta-deuda');
+        const caja = tarjeta?.querySelector('.caja-abono');
         if (caja) {
           caja.classList.toggle('oculto');
           if (!caja.classList.contains('oculto')) {
