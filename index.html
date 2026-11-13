@@ -904,19 +904,37 @@
   <span>Cargando Milap…</span>
 </div>
 
-<!-- ================= AUTH ================= -->
-<div id="pantalla-auth" class="oculto">
-  <div class="auth-envoltura">
-    <div class="marca-hero">
-   <div style="width:62px; height:62px; margin:0 auto 12px; border-radius:18px; background:#182B1C; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(24,43,28,0.18);">
-     <svg width="38" height="38" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-       <line x1="16" y1="4.5" x2="16" y2="27.5" stroke="#45A86E" stroke-width="2.6" stroke-linecap="round"/>
-       <path d="M5.5 24.5V8.5L16 18L26.5 8.5V24.5" stroke="#CDE0CD" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
-     </svg>
-   </div>
-    <h1 class="marca">Milap</h1>
-    <p class="subtitulo">Control real de tus gastos, deudas y abonos mensuales.</p>
+<div class="marca-hero">
+  <!-- LOGO REDISEÑADO CON VOLUMEN Y SOMBRAS -->
+  <div style="width: 80px; height: 80px; margin: 0 auto 16px; border-radius: 24px; background: linear-gradient(145deg, #1A311F, #122115); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(24, 43, 28, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.15); border: 1.5px solid #2A4531; position: relative;">
+    <svg width="46" height="46" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Sombra interna / brillo de fondo para dar profundidad financiera -->
+      <circle cx="16" cy="16" r="12" fill="url(#brillo-int)" opacity="0.15" />
+      
+      <!-- Símbolo Pesos ($) trasero con integración natural -->
+      <path d="M16 4V28" stroke="#378F56" stroke-width="3" stroke-linecap="round" filter="url(#drop-shadow)"/>
+      <path d="M21 11.5C21 11.5 18 9 16 9C13 9 11.5 10.5 11.5 12C11.5 14.5 20.5 14 20.5 17.5C20.5 20 18 22 16 22C13.5 22 11 19.5 11 19.5" stroke="#378F56" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      
+      <!-- Letra M central estilizada, gruesa y con relieve -->
+      <path d="M7.5 22.5V11.5L16 18.5L24.5 11.5V22.5" stroke="#E6F2E6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#drop-shadow)"/>
+
+      <!-- Definición de filtros de sombras y degradados en vivo -->
+      <defs>
+        <radialGradient id="brillo-int" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#4EAA70"/>
+          <stop offset="100%" stop-color="#182B1C" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="drop-shadow" x="-10%" y="-10%" width="120%" height="120%">
+          <filterRes subregion="true"/>
+          <feDropShadow dx="0" dy="1.5" stdDeviation="1" flood-color="#090E0A" flood-opacity="0.6"/>
+        </filter>
+      </defs>
+    </svg>
   </div>
+  <!-- Tipografía ajustada -->
+  <h1 class="marca" style="font-family: var(--font-display); font-size: 42px; font-weight: 700; color: #182B1C; letter-spacing: -0.03em; text-shadow: 0 1px 2px rgba(24, 43, 28, 0.05); margin-bottom: 2px;">Milap</h1>
+  <p class="subtitulo" style="margin-top: 4px; color: #4A634E; font-weight: 500;">Tus finanzas con el control de un banco.</p>
+</div>
 
     <div class="tarjeta-auth">
       <div class="pestanas">
@@ -948,15 +966,17 @@
 <!-- ================= DASHBOARD ================= -->
 <div id="pantalla-dashboard" class="oculto">
   <header class="encabezado">
-    <div class="header-izq">
-      <div class="logo-badge" aria-label="Logo Milap">
-       <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- Barra vertical del signo pesos atraviesa el centro de la M -->
-    <line x1="16" y1="4.5" x2="16" y2="27.5" stroke="#45A86E" stroke-width="2.6" stroke-linecap="round"/>
-    <!-- Trazo geométrico de la M -->
-    <path d="M5.5 24.5V8.5L16 18L26.5 8.5V24.5" stroke="#CDE0CD" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>   
+    <div class="header-izq" style="display: flex; align-items: center; gap: 12px;">
+  <!-- LOGO COMPACTO CON RELIEVE -->
+  <div style="width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(145deg, #1A311F, #122115); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(24, 43, 28, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.15); border: 1px solid #2A4531;">
+    <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 4V28" stroke="#378F56" stroke-width="3" stroke-linecap="round"/>
+      <path d="M21 11.5C21 11.5 18 9 16 9C13 9 11.5 10.5 11.5 12C11.5 14.5 20.5 14 20.5 17.5C20.5 20 18 22 16 22C13.5 22 11 19.5 11 19.5" stroke="#378F56" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M7.5 22.5V11.5L16 18.5L24.5 11.5V22.5" stroke="#E6F2E6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <h1 class="marca" style="font-family: var(--font-display); font-size: 26px; font-weight: 700; color: #182B1C; letter-spacing: -0.02em;">Milap</h1>
+</div>  
     <div class="saludo-salir">
       <span id="texto-saludo">Hola</span>
       <button class="btn-salir" id="btn-salir">Salir</button>
