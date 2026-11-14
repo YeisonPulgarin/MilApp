@@ -1132,15 +1132,15 @@
     onAuthStateChanged, signOut
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
-    getFirestore, doc, setDoc, getDoc, collection, addDoc, query,
+    initializeFirestore, doc, setDoc, getDoc, collection, addDoc, query,
     orderBy, onSnapshot, updateDoc, deleteDoc, serverTimestamp, increment, arrayUnion
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBOYFpzUUxULGH-xbV3-6g7bNwQGnoDijA",
-    authDomain: "MillApp7-6e772.firebaseapp.com",
-    projectId: "MillApp7-6e772",
-    storageBucket: "MillApp7-6e772.firebasestorage.app",
+    authDomain: "milap7-6e772.firebaseapp.com",
+    projectId: "milap7-6e772",
+    storageBucket: "milap7-6e772.firebasestorage.app",
     messagingSenderId: "811114533082",
     appId: "1:811114533082:web:3feb16039c198a37b3d5e3"
   };
@@ -1188,7 +1188,9 @@
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const db = getFirestore(app);
+  const db = initializeFirestore(app, {
+    experimentalForceLongPolling: true
+  });;
 
   let estado = {
     deudas: [], ingresos: [], gastos: [], metas: [],
@@ -1344,18 +1346,14 @@
   document.getElementById('cerrar-modal').addEventListener('click', () => modalRegistro.classList.add('oculto'));
   modalRegistro.addEventListener('click', (e) => { if (e.target === modalRegistro) modalRegistro.classList.add('oculto'); });
 
-  document.querySelectorAll('.cat-opcion').forEach(btn => {
-    btn.addEventListener('click', () => {
-      btn.parentElement.querySelectorAll('.cat-opcion').forEach(b => b.classList.remove('seleccionada'));
-      btn.classList.add('seleccionada');
-      estado.subcategoriaModal = btn.dataset.val;
-    });
-  });
-
-  document.getElementById('form-rapido').addEventListener('submit', async (e) => {
+document.getElementById('form-rapido').addEventListener('submit', async (e) => {
     e.preventDefault();
     const user = auth.currentUser;
-    if (!user) return;
+    if (!user) {
+      mostrarToast('Sesión expirada, vuelve a ingresar');
+      return;
+    }
+
     const monto = parsearMontoBanco(inputMontoRapido.value);
     const descripcion = inputDescRapido.value.trim();
     const fecha = inputFechaRapido.value || null;
@@ -1363,6 +1361,8 @@
 
     const btnGuardar = document.getElementById('btn-guardar-rapido');
     btnGuardar.disabled = true;
+    btnGuardar.textContent = 'Guardando...';
+
     try {
       if (estado.tipoModal === 'deuda') {
         if (estado.subcategoriaModal === 'gasto') {
@@ -1384,10 +1384,12 @@
         mostrarToast('Ingreso registrado ✓');
       }
       modalRegistro.classList.add('oculto');
-    } catch {
-      mostrarToast('Error al guardar');
+    } catch (err) {
+      console.error('Error completo de Firebase:', err);
+      mostrarToast(`Error: ${err.code || 'No se pudo guardar'}`);
     } finally {
       btnGuardar.disabled = false;
+      btnGuardar.textContent = 'Guardar registro';
     }
   });
 
