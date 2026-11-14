@@ -1317,7 +1317,7 @@
   const inputDescRapido = document.getElementById('rapido-desc');
   const inputFechaRapido = document.getElementById('rapido-fecha');
 
-  function abrirModal(tipo) {
+function abrirModal(tipo) {
     estado.tipoModal = tipo;
     document.getElementById('form-rapido').reset();
     document.getElementById('visor-preview-banco').textContent = 'Monto exacto: $ 0,00';
@@ -1340,6 +1340,21 @@
     modalRegistro.classList.remove('oculto');
     setTimeout(() => inputMontoRapido.focus(), 100);
   }
+
+  document.getElementById('abrir-modal-deuda').addEventListener('click', () => abrirModal('deuda'));
+  document.getElementById('abrir-modal-ingreso').addEventListener('click', () => abrirModal('ingreso'));
+  document.getElementById('cerrar-modal').addEventListener('click', () => modalRegistro.classList.add('oculto'));
+  modalRegistro.addEventListener('click', (e) => { if (e.target === modalRegistro) modalRegistro.classList.add('oculto'); });
+
+  document.querySelectorAll('.grid-categorias').forEach(grid => {
+    grid.querySelectorAll('.cat-opcion').forEach(btn => {
+      btn.addEventListener('click', () => {
+        grid.querySelectorAll('.cat-opcion').forEach(b => b.classList.remove('seleccionada'));
+        btn.classList.add('seleccionada');
+        estado.subcategoriaModal = btn.dataset.val;
+      });
+    });
+  });
 
   document.getElementById('abrir-modal-deuda').addEventListener('click', () => abrirModal('deuda'));
   document.getElementById('abrir-modal-ingreso').addEventListener('click', () => abrirModal('ingreso'));
