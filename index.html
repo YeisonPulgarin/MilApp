@@ -6,11 +6,11 @@
 <title>Milap · tus finanzas</title>
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    /* Paleta dominada por #CDE0CD */
     --bg-main: #CDE0CD;
     --bg-light: #E2EFE2;
     --bg-card: #F4F9F4;
@@ -22,7 +22,6 @@
     --ink-soft: #4A634E;
     --ink-muted: #6C8570;
 
-    /* Semántica estilo Monefy */
     --ingreso: #247A48;
     --ingreso-bg: #D5ECDD;
     --debito: #C2463A;
@@ -108,6 +107,16 @@
   .marca-hero {
     text-align: center;
     margin-bottom: 24px;
+  }
+  .logo-login {
+    width: 84px;
+    height: 84px;
+    border-radius: 22px;
+    object-fit: cover;
+    margin: 0 auto 14px;
+    display: block;
+    box-shadow: 0 8px 22px rgba(24, 43, 28, 0.16);
+    border: 2px solid var(--border-soft);
   }
   .marca {
     font-family: var(--font-display);
@@ -209,19 +218,15 @@
     align-items: center;
     gap: 10px;
   }
-  .logo-badge {
-    width: 36px; height: 36px;
-    border-radius: 12px;
-    background: var(--ink);
-    color: var(--bg-main);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 20px;
+  .logo-header {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    object-fit: cover;
+    border: 1.5px solid var(--border-soft);
+    box-shadow: 0 2px 6px rgba(24, 43, 28, 0.12);
   }
-  header.encabezado .marca { font-size: 24px; }
+  header.encabezado .marca { font-size: 25px; }
 
   .saludo-salir {
     display: flex;
@@ -429,7 +434,6 @@
     color: var(--bg-elevated);
   }
 
-  /* Tarjeta individual de deuda realista */
   .tarjeta-deuda {
     background: var(--bg-elevated);
     border: 1px solid var(--border-soft);
@@ -494,10 +498,7 @@
   .valor-mov.me-deben { color: var(--credito); }
   .valor-mov.ingreso { color: var(--ingreso); }
 
-  /* Progreso de pago de deuda */
-  .deuda-progreso-wrap {
-    margin-bottom: 10px;
-  }
+  .deuda-progreso-wrap { margin-bottom: 10px; }
   .barra-deuda {
     height: 7px;
     background: var(--bg-main);
@@ -543,10 +544,7 @@
   }
   .btn-abonar-toggle:hover { background: var(--ingreso-bg); color: var(--ingreso); }
 
-  .acciones-secundarias {
-    display: flex;
-    gap: 6px;
-  }
+  .acciones-secundarias { display: flex; gap: 6px; }
   .btn-mini {
     font-size: 11.5px;
     font-weight: 600;
@@ -556,10 +554,8 @@
     color: var(--ink-soft);
     border: 1px solid var(--border-soft);
   }
-  .btn-mini.ok:hover { background: var(--ingreso-bg); color: var(--ingreso); border-color: var(--ingreso); }
   .btn-mini.del:hover { background: var(--debito-bg); color: var(--debito); border-color: var(--debito); }
 
-  /* Cajón desplegable para hacer un abono */
   .caja-abono {
     margin-top: 10px;
     padding-top: 10px;
@@ -598,7 +594,6 @@
     white-space: nowrap;
   }
 
-  /* Historial de abonos realizados */
   .historial-abonos {
     margin-top: 8px;
     padding: 8px 10px;
@@ -619,7 +614,6 @@
     padding: 2px 0;
   }
 
-  /* Item simple para ingresos */
   .item-movimiento {
     display: flex;
     align-items: center;
@@ -904,26 +898,55 @@
   <span>Cargando Milap…</span>
 </div>
 
-<div class="marca-hero">
-  <img src="logo.png" alt="Logo Milap" style="width: 84px; height: 84px; border-radius: 22px; object-fit: cover; margin: 0 auto 14px; display: block; box-shadow: 0 8px 22px rgba(24, 43, 28, 0.16); border: 2px solid #B2CCB2;">
-  <h1 class="marca">Milap</h1>
-  <p class="subtitulo">Control real de tus gastos, deudas y abonos mensuales.</p>
+<!-- ================= AUTH ================= -->
+<div id="pantalla-auth" class="oculto">
+  <div class="auth-envoltura">
+    <div class="marca-hero">
+      <img src="logo.png" alt="Logo Milap" class="logo-login">
+      <h1 class="marca">Milap</h1>
+      <p class="subtitulo">Control real de tus gastos, deudas y abonos mensuales.</p>
+    </div>
+
+    <div class="tarjeta-auth">
+      <div class="pestanas">
+        <button type="button" class="pestana activa" data-modo="entrar">Iniciar sesión</button>
+        <button type="button" class="pestana" data-modo="registrar">Crear cuenta</button>
+      </div>
+
+      <form id="form-auth">
+        <div class="campo">
+          <label for="campo-nombre">Nombre de usuario</label>
+          <input type="text" id="campo-nombre" autocomplete="username" required minlength="3" placeholder="ej. yeison">
+        </div>
+        <div class="campo">
+          <label for="campo-contrasena">Contraseña</label>
+          <input type="password" id="campo-contrasena" autocomplete="current-password" required minlength="6" placeholder="••••••">
+        </div>
+        <div class="campo oculto" id="campo-confirmar-envoltura">
+          <label for="campo-confirmar">Confirmar contraseña</label>
+          <input type="password" id="campo-confirmar" autocomplete="new-password" minlength="6" placeholder="••••••">
+        </div>
+
+        <button type="submit" class="boton-principal" id="btn-auth">Iniciar sesión</button>
+        <p class="mensaje-error" id="mensaje-auth"></p>
+      </form>
+    </div>
+  </div>
 </div>
 
 <!-- ================= DASHBOARD ================= -->
 <div id="pantalla-dashboard" class="oculto">
   <header class="encabezado">
- <div class="header-izq">
-  <img src="logo.png" alt="Logo Milap" style="width: 38px; height: 38px; border-radius: 11px; object-fit: cover; border: 1.5px solid #B2CCB2; box-shadow: 0 2px 6px rgba(24, 43, 28, 0.12);">
-  <h1 class="marca">Milap</h1>
-</div>
+    <div class="header-izq">
+      <img src="logo.png" alt="Logo Milap" class="logo-header">
+      <h1 class="marca">Milap</h1>
+    </div>
     <div class="saludo-salir">
       <span id="texto-saludo">Hola</span>
       <button class="btn-salir" id="btn-salir">Salir</button>
     </div>
   </header>
 
-  <!-- Filtro de vista mensual -->
   <div class="barra-periodo">
     <span class="periodo-label">📅 Periodo de control</span>
     <select id="filtro-mes" class="select-periodo">
@@ -938,7 +961,7 @@
     <button type="button" class="nav-boton" data-seccion="metas">Metas</button>
   </nav>
 
-  <!-- ===== SECCIÓN BALANCE (ESTILO MONEFY) ===== -->
+  <!-- ===== SECCIÓN BALANCE ===== -->
   <section class="panel-seccion" id="panel-resumen">
     <div class="tarjeta-monefy">
       <div class="donut-contenedor">
@@ -979,7 +1002,7 @@
     </div>
   </section>
 
-  <!-- ===== SECCIÓN DEUDAS CON ABONOS ===== -->
+  <!-- ===== SECCIÓN DEUDAS ===== -->
   <section class="panel-seccion oculto" id="panel-deudas">
     <div class="bloque-lista">
       <div class="cabecera-bloque">
@@ -1024,7 +1047,7 @@
     <div id="lista-metas"></div>
   </section>
 
-  <!-- BOTONES FLOTANTES INFERIORES ESTILO MONEFY -->
+  <!-- BOTONES FLOTANTES INFERIORES -->
   <div class="dock-monefy">
     <button type="button" class="btn-monefy gasto" id="abrir-modal-deuda">
       <span class="simbolo-circulo">−</span>
@@ -1037,7 +1060,7 @@
   </div>
 </div>
 
-<!-- ================= MODAL REGISTRO RÁPIDO (BOTTOM SHEET) ================= -->
+<!-- ================= MODAL REGISTRO RÁPIDO ================= -->
 <div id="modal-registro" class="overlay-modal oculto">
   <div class="sheet-modal">
     <div class="sheet-handle"></div>
@@ -1063,730 +1086,4 @@
       </div>
 
       <div class="grid-categorias oculto" id="cats-ingreso">
-        <button type="button" class="cat-opcion seleccionada" data-val="salario">
-          <span>💼</span>Salario
-        </button>
-        <button type="button" class="cat-opcion" data-val="extra">
-          <span>⚡</span>Extra
-        </button>
-        <button type="button" class="cat-opcion" data-val="otro">
-          <span>🎁</span>Otro
-        </button>
-      </div>
-
-      <div class="fila-inputs-sheet">
-        <input type="text" id="rapido-desc" required placeholder="Concepto (ej. Arriendo, Préstamo)">
-        <input type="date" id="rapido-fecha">
-      </div>
-
-      <button type="submit" class="boton-principal" id="btn-guardar-rapido">Guardar registro</button>
-    </form>
-  </div>
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import {
-    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    onAuthStateChanged, signOut
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import {
-    getFirestore, doc, setDoc, getDoc, collection, addDoc, query,
-    orderBy, onSnapshot, updateDoc, deleteDoc, serverTimestamp, increment, arrayUnion
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBOYFpzUUxULGH-xbV3-6g7bNwQGnoDijA",
-    authDomain: "milap7-6e772.firebaseapp.com",
-    projectId: "milap7-6e772",
-    storageBucket: "milap7-6e772.firebasestorage.app",
-    messagingSenderId: "811114533082",
-    appId: "1:811114533082:web:3feb16039c198a37b3d5e3"
-  };
-
-  // ---------- FORMATEO BANCARIO COLOMBIANO (600.000,00) ----------
-  const FORMATO_BANCO = new Intl.NumberFormat('es-CO', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-
-  function formatearMonedaBanco(valor) {
-    const num = Number(valor) || 0;
-    return `$ ${FORMATO_BANCO.format(num)}`;
-  }
-
-  function parsearMontoBanco(texto) {
-    if (!texto) return 0;
-    const limpio = String(texto).replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, '');
-    return parseFloat(limpio) || 0;
-  }
-
-  function aplicarMascaraBanco(inputEl) {
-    let val = inputEl.value.replace(/[^0-9,]/g, '');
-    const partes = val.split(',');
-    let enteros = partes[0].replace(/^0+(?=\d)/, '');
-    enteros = enteros.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-    if (partes.length > 1) {
-      const decimales = partes[1].slice(0, 2);
-      inputEl.value = `${enteros || '0'},${decimales}`;
-    } else {
-      inputEl.value = enteros;
-    }
-  }
-
-  function enlazarInputsDinero(contenedor = document) {
-    contenedor.querySelectorAll('.input-dinero').forEach(inp => {
-      if (inp.dataset.mascaraActiva) return;
-      inp.dataset.mascaraActiva = '1';
-
-      inp.addEventListener('input', () => {
-        aplicarMascaraBanco(inp);
-        if (inp.id === 'rapido-monto') {
-          const num = parsearMontoBanco(inp.value);
-          document.getElementById('visor-preview-banco').textContent = `Monto exacto: ${formatearMonedaBanco(num)}`;
-        }
-      });
-
-      inp.addEventListener('blur', () => {
-        const num = parsearMontoBanco(inp.value);
-        if (num > 0) inp.value = FORMATO_BANCO.format(num);
-      });
-    });
-  }
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  let estado = {
-    deudas: [],
-    ingresos: [],
-    metas: [],
-    filtroDeuda: 'todas',
-    filtroMes: 'todos',
-    tipoModal: 'deuda',
-    subcategoriaModal: 'debo'
-  };
-
-  const pantallaCargando = document.getElementById('pantalla-cargando');
-  const pantallaAuth = document.getElementById('pantalla-auth');
-  const pantallaDashboard = document.getElementById('pantalla-dashboard');
-  const toastEl = document.getElementById('toast');
-  const filtroMesSelect = document.getElementById('filtro-mes');
-
-  function mostrarToast(msg) {
-    toastEl.textContent = msg;
-    toastEl.classList.add('visible');
-    setTimeout(() => toastEl.classList.remove('visible'), 2500);
-  }
-
-  function escaparHtml(texto) {
-    const div = document.createElement('div');
-    div.textContent = texto || '';
-    return div.innerHTML;
-  }
-
-  // Helper para obtener saldos reales de una deuda (compatible con registros anteriores)
-  function obtenerDatosDeuda(d) {
-    const montoOriginal = Number(d.montoOriginal ?? d.monto ?? 0);
-    const montoAbonado = Number(d.montoAbonado ?? (d.estado === 'pagada' ? montoOriginal : 0));
-    const saldoRestante = Math.max(0, Number((montoOriginal - montoAbonado).toFixed(2)));
-    const estaSaldada = d.estado === 'pagada' || saldoRestante <= 0;
-    const porcentaje = montoOriginal > 0 ? Math.min(100, Math.round((montoAbonado / montoOriginal) * 100)) : 100;
-    return { montoOriginal, montoAbonado, saldoRestante, estaSaldada, porcentaje };
-  }
-
-  enlazarInputsDinero();
-
-  // Actualizar opciones de meses dinámicamente según registros
-  function actualizarSelectorMeses() {
-    const mesesSet = new Set();
-    const hoy = new Date();
-    const mesActualKey = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
-    mesesSet.add(mesActualKey);
-
-    estado.ingresos.forEach(i => {
-      if (i.fecha && i.fecha.length >= 7) mesesSet.add(i.fecha.slice(0, 7));
-    });
-    estado.deudas.forEach(d => {
-      if (d.fechaLimite && d.fechaLimite.length >= 7) mesesSet.add(d.fechaLimite.slice(0, 7));
-    });
-
-    const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    const valorPrevio = filtroMesSelect.value;
-
-    const opcionesHtml = ['<option value="todos">Todo el historial</option>'];
-    Array.from(mesesSet).sort().reverse().forEach(ym => {
-      const [anio, mes] = ym.split('-');
-      const nombre = `${nombresMeses[parseInt(mes, 10) - 1]} ${anio}`;
-      opcionesHtml.push(`<option value="${ym}">${nombre}</option>`);
-    });
-
-    filtroMesSelect.innerHTML = opcionesHtml.join('');
-    if ([...mesesSet, 'todos'].includes(valorPrevio)) {
-      filtroMesSelect.value = valorPrevio;
-    }
-  }
-
-  filtroMesSelect.addEventListener('change', () => {
-    estado.filtroMes = filtroMesSelect.value;
-    renderizarTodo(auth.currentUser?.uid);
-  });
-
-  // Navegación
-  const botonesNav = document.querySelectorAll('.nav-boton');
-  const paneles = {
-    resumen: document.getElementById('panel-resumen'),
-    deudas: document.getElementById('panel-deudas'),
-    ingresos: document.getElementById('panel-ingresos'),
-    metas: document.getElementById('panel-metas'),
-  };
-
-  function mostrarSeccion(nombre) {
-    botonesNav.forEach(b => b.classList.toggle('activa', b.dataset.seccion === nombre));
-    Object.entries(paneles).forEach(([clave, el]) => el.classList.toggle('oculto', clave !== nombre));
-  }
-  botonesNav.forEach(b => b.addEventListener('click', () => mostrarSeccion(b.dataset.seccion)));
-
-  // Auth Logic
-  let modoAuth = 'entrar';
-  const pestanas = document.querySelectorAll('.pestana');
-  const formAuth = document.getElementById('form-auth');
-  const campoConfirmarEnv = document.getElementById('campo-confirmar-envoltura');
-  const campoConfirmar = document.getElementById('campo-confirmar');
-  const btnAuth = document.getElementById('btn-auth');
-  const mensajeAuth = document.getElementById('mensaje-auth');
-
-  pestanas.forEach(p => p.addEventListener('click', () => {
-    modoAuth = p.dataset.modo;
-    pestanas.forEach(x => x.classList.toggle('activa', x.dataset.modo === modoAuth));
-    campoConfirmarEnv.classList.toggle('oculto', modoAuth !== 'registrar');
-    campoConfirmar.required = modoAuth === 'registrar';
-    btnAuth.textContent = modoAuth === 'registrar' ? 'Crear cuenta' : 'Iniciar sesión';
-    mensajeAuth.textContent = '';
-  }));
-
-  function emailInterno(nombreUsuario) {
-    return nombreUsuario.trim().toLowerCase().replace(/\s+/g, '_') + '@lukasapp.local';
-  }
-
-  formAuth.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    mensajeAuth.textContent = '';
-    const nombre = document.getElementById('campo-nombre').value.trim();
-    const pass = document.getElementById('campo-contrasena').value;
-
-    if (modoAuth === 'registrar' && pass !== campoConfirmar.value) {
-      mensajeAuth.textContent = 'Las contraseñas no coinciden.';
-      return;
-    }
-
-    btnAuth.disabled = true;
-    try {
-      const email = emailInterno(nombre);
-      if (modoAuth === 'registrar') {
-        const cred = await createUserWithEmailAndPassword(auth, email, pass);
-        await setDoc(doc(db, 'usuarios', cred.user.uid), { nombre, creadoEn: serverTimestamp() });
-      } else {
-        await signInWithEmailAndPassword(auth, email, pass);
-      }
-    } catch (err) {
-      mensajeAuth.textContent = 'Verifica tus credenciales e inténtalo de nuevo.';
-    } finally {
-      btnAuth.disabled = false;
-    }
-  });
-
-  document.getElementById('btn-salir').addEventListener('click', () => signOut(auth));
-
-  // Modal Registro Rápido
-  const modalRegistro = document.getElementById('modal-registro');
-  const catsDeuda = document.getElementById('cats-deuda');
-  const catsIngreso = document.getElementById('cats-ingreso');
-  const inputMontoRapido = document.getElementById('rapido-monto');
-  const inputDescRapido = document.getElementById('rapido-desc');
-  const inputFechaRapido = document.getElementById('rapido-fecha');
-
-  function abrirModal(tipo) {
-    estado.tipoModal = tipo;
-    document.getElementById('form-rapido').reset();
-    document.getElementById('visor-preview-banco').textContent = 'Monto exacto: $ 0,00';
-    inputFechaRapido.valueAsDate = new Date();
-
-    if (tipo === 'deuda') {
-      document.getElementById('modal-titulo').textContent = 'Nueva deuda o gasto por pagar';
-      catsDeuda.classList.remove('oculto');
-      catsIngreso.classList.add('oculto');
-      estado.subcategoriaModal = 'debo';
-      catsDeuda.querySelectorAll('.cat-opcion').forEach((b, i) => b.classList.toggle('seleccionada', i === 0));
-      document.getElementById('btn-guardar-rapido').style.background = 'var(--debito)';
-    } else {
-      document.getElementById('modal-titulo').textContent = 'Nuevo ingreso';
-      catsDeuda.classList.add('oculto');
-      catsIngreso.classList.remove('oculto');
-      estado.subcategoriaModal = 'salario';
-      catsIngreso.querySelectorAll('.cat-opcion').forEach((b, i) => b.classList.toggle('seleccionada', i === 0));
-      document.getElementById('btn-guardar-rapido').style.background = 'var(--ingreso)';
-    }
-
-    modalRegistro.classList.remove('oculto');
-    setTimeout(() => inputMontoRapido.focus(), 100);
-  }
-
-  document.getElementById('abrir-modal-deuda').addEventListener('click', () => abrirModal('deuda'));
-  document.getElementById('abrir-modal-ingreso').addEventListener('click', () => abrirModal('ingreso'));
-  document.getElementById('cerrar-modal').addEventListener('click', () => modalRegistro.classList.add('oculto'));
-  modalRegistro.addEventListener('click', (e) => {
-    if (e.target === modalRegistro) modalRegistro.classList.add('oculto');
-  });
-
-  document.querySelectorAll('.cat-opcion').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const contenedor = btn.parentElement;
-      contenedor.querySelectorAll('.cat-opcion').forEach(b => b.classList.remove('seleccionada'));
-      btn.classList.add('seleccionada');
-      estado.subcategoriaModal = btn.dataset.val;
-    });
-  });
-
-  document.getElementById('form-rapido').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const monto = parsearMontoBanco(inputMontoRapido.value);
-    const descripcion = inputDescRapido.value.trim();
-    const fecha = inputFechaRapido.value || null;
-    if (!(monto > 0) || !descripcion) return;
-
-    const btnGuardar = document.getElementById('btn-guardar-rapido');
-    btnGuardar.disabled = true;
-
-    try {
-      if (estado.tipoModal === 'deuda') {
-        await addDoc(collection(db, 'usuarios', user.uid, 'deudas'), {
-          descripcion,
-          monto,
-          montoOriginal: monto,
-          montoAbonado: 0,
-          abonos: [],
-          tipo: estado.subcategoriaModal,
-          fechaLimite: fecha,
-          estado: 'pendiente',
-          creadoEn: serverTimestamp()
-        });
-        mostrarToast('Deuda registrada ✓');
-      } else {
-        await addDoc(collection(db, 'usuarios', user.uid, 'ingresos'), {
-          descripcion,
-          monto,
-          categoria: estado.subcategoriaModal,
-          fecha,
-          creadoEn: serverTimestamp()
-        });
-        mostrarToast('Ingreso registrado ✓');
-      }
-      modalRegistro.classList.add('oculto');
-    } catch (err) {
-      mostrarToast('Error al guardar');
-    } finally {
-      btnGuardar.disabled = false;
-    }
-  });
-
-  // Filtros de pestaña Deudas
-  document.querySelectorAll('[data-filtro-deuda]').forEach(chip => {
-    chip.addEventListener('click', () => {
-      document.querySelectorAll('[data-filtro-deuda]').forEach(c => c.classList.remove('activo'));
-      chip.classList.add('activo');
-      estado.filtroDeuda = chip.dataset.filtroDeuda;
-      renderizarTodo(auth.currentUser?.uid);
-    });
-  });
-
-  function filtrarPorPeriodo(lista, campoFecha) {
-    if (estado.filtroMes === 'todos') return lista;
-    return lista.filter(item => {
-      const f = item[campoFecha];
-      return f && f.startsWith(estado.filtroMes);
-    });
-  }
-
-  // Gráfico Donut estilo Monefy basado en SALDOS PENDIENTES reales
-  function actualizarDonut(ingresosFiltrados, deudasFiltradas) {
-    let totalIngresos = 0;
-    let saldoDebo = 0;
-    let saldoMeDeben = 0;
-
-    ingresosFiltrados.forEach(i => totalIngresos += Number(i.monto || 0));
-    deudasFiltradas.forEach(d => {
-      const info = obtenerDatosDeuda(d);
-      if (!info.estaSaldada) {
-        if (d.tipo === 'debo') saldoDebo += info.saldoRestante;
-        else saldoMeDeben += info.saldoRestante;
-      }
-    });
-
-    const disponibleNeto = totalIngresos + saldoMeDeben - saldoDebo;
-    document.getElementById('kpi-ingresos').textContent = formatearMonedaBanco(totalIngresos);
-    document.getElementById('kpi-debo').textContent = formatearMonedaBanco(saldoDebo);
-    document.getElementById('kpi-me-deben').textContent = formatearMonedaBanco(saldoMeDeben);
-
-    const balanceEl = document.getElementById('balance-general');
-    balanceEl.textContent = formatearMonedaBanco(disponibleNeto);
-    balanceEl.style.color = disponibleNeto >= 0 ? 'var(--ingreso)' : 'var(--debito)';
-
-    const sumaTotal = totalIngresos + saldoDebo + saldoMeDeben;
-    const circunferencia = 2 * Math.PI * 40;
-
-    const arcoIng = document.getElementById('arco-ingresos');
-    const arcoDeb = document.getElementById('arco-me-deben');
-    const arcoDebo = document.getElementById('arco-debo');
-
-    if (sumaTotal === 0) {
-      arcoIng.setAttribute('stroke-dasharray', `0 ${circunferencia}`);
-      arcoDeb.setAttribute('stroke-dasharray', `0 ${circunferencia}`);
-      arcoDebo.setAttribute('stroke-dasharray', `0 ${circunferencia}`);
-      document.getElementById('porcentaje-salud').textContent = 'Sin saldos pendientes';
-      return;
-    }
-
-    const lenIng = (totalIngresos / sumaTotal) * circunferencia;
-    const lenMeDeb = (saldoMeDeben / sumaTotal) * circunferencia;
-    const lenDebo = (saldoDebo / sumaTotal) * circunferencia;
-
-    arcoIng.setAttribute('stroke-dasharray', `${lenIng} ${circunferencia}`);
-    arcoIng.setAttribute('stroke-dashoffset', '0');
-
-    arcoDeb.setAttribute('stroke-dasharray', `${lenMeDeb} ${circunferencia}`);
-    arcoDeb.setAttribute('stroke-dashoffset', `${-lenIng}`);
-
-    arcoDebo.setAttribute('stroke-dasharray', `${lenDebo} ${circunferencia}`);
-    arcoDebo.setAttribute('stroke-dashoffset', `${-(lenIng + lenMeDeb)}`);
-
-    const pctPositivo = Math.round(((totalIngresos + saldoMeDeben) / sumaTotal) * 100);
-    document.getElementById('porcentaje-salud').textContent = `${pctPositivo}% liquidez a favor`;
-  }
-
-  // Tarjeta realista de Deuda con barra de progreso, abonos parciales e historial
-  function crearTarjetaDeuda(d) {
-    const esDebo = d.tipo === 'debo';
-    const clase = esDebo ? 'debo' : 'me-deben';
-    const icono = esDebo ? '💸' : '🤝';
-    const info = obtenerDatosDeuda(d);
-    const historial = Array.isArray(d.abonos) ? d.abonos : [];
-
-    const historialHtml = historial.length > 0 ? `
-      <div class="historial-abonos">
-        <div class="historial-abonos-titulo">Historial de abonos (${historial.length})</div>
-        ${historial.slice(-3).reverse().map(ab => `
-          <div class="linea-abono">
-            <span>${ab.fecha || 'Abono'}</span>
-            <span style="color:var(--ingreso); font-weight:600;">+ ${formatearMonedaBanco(ab.monto)}</span>
-          </div>
-        `).join('')}
-      </div>
-    ` : '';
-
-    return `
-      <div class="tarjeta-deuda ${info.estaSaldada ? 'saldada' : ''}" id="card-deuda-${d.id}">
-        <div class="deuda-top">
-          <div class="icono-cat ${clase}">${icono}</div>
-          <div class="info-mov">
-            <div class="desc-mov">${escaparHtml(d.descripcion)}</div>
-            <div class="meta-mov">${esDebo ? 'Debo pagar' : 'Me deben'} · Vence: ${d.fechaLimite || 'Sin fecha'}</div>
-          </div>
-          <div class="saldo-box">
-            <div class="saldo-etiqueta">${info.estaSaldada ? 'Saldada' : 'Saldo pendiente'}</div>
-            <div class="valor-mov ${info.estaSaldada ? 'ingreso' : clase}">${formatearMonedaBanco(info.saldoRestante)}</div>
-          </div>
-        </div>
-
-        <div class="deuda-progreso-wrap">
-          <div class="barra-deuda">
-            <div class="barra-deuda-fill ${info.estaSaldada ? 'completa' : clase}" style="width:${info.porcentaje}%"></div>
-          </div>
-          <div class="deuda-detalles-cifras">
-            <span>Abonado: ${formatearMonedaBanco(info.montoAbonado)} (${info.porcentaje}%)</span>
-            <span>Total: ${formatearMonedaBanco(info.montoOriginal)}</span>
-          </div>
-        </div>
-
-        <div class="deuda-acciones">
-          ${!info.estaSaldada
-            ? `<button type="button" class="btn-abonar-toggle" data-toggle-abono="${d.id}">💰 Abonar cuota</button>`
-            : `<span style="font-size:12px; font-weight:700; color:var(--ingreso);">✓ Deuda completada</span>`
-          }
-          <div class="acciones-secundarias">
-            <button type="button" class="btn-mini del" data-del-deuda="${d.id}">Eliminar</button>
-          </div>
-        </div>
-
-        ${!info.estaSaldada ? `
-          <div class="caja-abono oculto" id="caja-abono-${d.id}">
-            <form class="form-abono-deuda" data-form-abono="${d.id}" data-saldo="${info.saldoRestante}">
-              <input type="text" class="input-dinero" inputmode="decimal" placeholder="Valor abono (0,00)" required>
-              <button type="button" class="btn-todo-abono" data-pagar-todo="${d.id}" data-saldo="${info.saldoRestante}">Todo</button>
-              <button type="submit" class="btn-confirmar-abono">Guardar</button>
-            </form>
-          </div>
-        ` : ''}
-
-        ${historialHtml}
-      </div>
-    `;
-  }
-
-  function crearHtmlItemIngreso(it) {
-    const iconos = { salario: '💼', extra: '⚡', otro: '🎁' };
-    return `
-      <div class="item-movimiento">
-        <div class="icono-cat ingreso">${iconos[it.categoria] || '💰'}</div>
-        <div class="info-mov">
-          <div class="desc-mov">${escaparHtml(it.descripcion)}</div>
-          <div class="meta-mov">${(it.categoria || 'Ingreso').toUpperCase()} · ${it.fecha || 'Sin fecha'}</div>
-        </div>
-        <div class="saldo-box">
-          <div class="valor-mov ingreso">+ ${formatearMonedaBanco(it.monto)}</div>
-          <div style="margin-top:4px;">
-            <button type="button" class="btn-mini del" data-del-ingreso="${it.id}">Borrar</button>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  async function registrarAbonoEnFirebase(uid, deudaId, valorAbono) {
-    const deuda = estado.deudas.find(x => x.id === deudaId);
-    if (!deuda || !(valorAbono > 0)) return;
-
-    const info = obtenerDatosDeuda(deuda);
-    const abonoReal = Math.min(valorAbono, info.saldoRestante);
-    const nuevoAbonado = Number((info.montoAbonado + abonoReal).toFixed(2));
-    const nuevoSaldo = Math.max(0, Number((info.montoOriginal - nuevoAbonado).toFixed(2)));
-    const saldada = nuevoSaldo <= 0;
-
-    const fechaHoy = new Date().toISOString().split('T')[0];
-
-    await updateDoc(doc(db, 'usuarios', uid, 'deudas', deudaId), {
-      montoOriginal: info.montoOriginal,
-      montoAbonado: nuevoAbonado,
-      estado: saldada ? 'pagada' : 'pendiente',
-      abonos: arrayUnion({
-        monto: abonoReal,
-        fecha: fechaHoy
-      })
-    });
-
-    mostrarToast(saldada ? '¡Deuda saldada por completo! 🎉' : `Abono de ${formatearMonedaBanco(abonoReal)} registrado ✓`);
-  }
-
-  function renderizarTodo(uid) {
-    const ingresosMes = filtrarPorPeriodo(estado.ingresos, 'fecha');
-    const deudasMes = filtrarPorPeriodo(estado.deudas, 'fechaLimite');
-
-    actualizarDonut(ingresosMes, deudasMes);
-
-    // 1. Lista Deudas con filtro de estado/tipo
-    const listaDeudasEl = document.getElementById('lista-deudas');
-    const deudasFiltradas = deudasMes.filter(d => {
-      const info = obtenerDatosDeuda(d);
-      if (estado.filtroDeuda === 'pagadas') return info.estaSaldada;
-      if (info.estaSaldada) return false; // En Activas, Debo y Me deben mostramos solo las pendientes
-      if (estado.filtroDeuda === 'todas') return true;
-      return d.tipo === estado.filtroDeuda;
-    });
-
-    listaDeudasEl.innerHTML = deudasFiltradas.length
-      ? deudasFiltradas.map(crearTarjetaDeuda).join('')
-      : '<div class="vacio">No hay deudas en esta vista.</div>';
-
-    // 2. Lista Ingresos
-    const listaIngresosEl = document.getElementById('lista-ingresos');
-    listaIngresosEl.innerHTML = ingresosMes.length
-      ? ingresosMes.map(crearHtmlItemIngreso).join('')
-      : '<div class="vacio">Aún no has registrado ingresos en este periodo.</div>';
-
-    // 3. Resumen en Balance: Deudas pendientes + últimos ingresos
-    const recientesEl = document.getElementById('lista-recientes');
-    const pendientes = deudasMes.filter(d => !obtenerDatosDeuda(d).estaSaldada).slice(0, 4);
-    const ultimosIngresos = ingresosMes.slice(0, 3);
-
-    const htmlResumen = [
-      ...pendientes.map(crearTarjetaDeuda),
-      ...ultimosIngresos.map(crearHtmlItemIngreso)
-    ].join('');
-
-    recientesEl.innerHTML = htmlResumen || '<div class="vacio">Usa <b>− Deuda / Gasto</b> o <b>+ Ingreso</b> para comenzar tu mes.</div>';
-
-    enlazarInputsDinero(document.getElementById('pantalla-dashboard'));
-
-    // Eventos de abonos y acciones
-   document.querySelectorAll('[data-toggle-abono]').forEach(btn => {
-      btn.onclick = () => {
-        const tarjeta = btn.closest('.tarjeta-deuda');
-        const caja = tarjeta?.querySelector('.caja-abono');
-        if (caja) {
-          caja.classList.toggle('oculto');
-          if (!caja.classList.contains('oculto')) {
-            caja.querySelector('input')?.focus();
-          }
-        }
-      };
-    });
-
-    document.querySelectorAll('[data-pagar-todo]').forEach(btn => {
-      btn.onclick = () => {
-        const form = btn.closest('form');
-        const input = form.querySelector('input');
-        const saldo = Number(btn.dataset.saldo || 0);
-        input.value = FORMATO_BANCO.format(saldo);
-      };
-    });
-
-    document.querySelectorAll('[data-form-abono]').forEach(form => {
-      form.onsubmit = async (e) => {
-        e.preventDefault();
-        const input = form.querySelector('input');
-        const valor = parsearMontoBanco(input.value);
-        if (!(valor > 0)) return;
-        const btnSubmit = form.querySelector('.btn-confirmar-abono');
-        btnSubmit.disabled = true;
-        await registrarAbonoEnFirebase(uid, form.dataset.formAbono, valor);
-      };
-    });
-
-    document.querySelectorAll('[data-del-deuda]').forEach(btn => {
-      btn.onclick = async () => {
-        await deleteDoc(doc(db, 'usuarios', uid, 'deudas', btn.dataset.delDeuda));
-        mostrarToast('Deuda eliminada');
-      };
-    });
-
-    document.querySelectorAll('[data-del-ingreso]').forEach(btn => {
-      btn.onclick = async () => {
-        await deleteDoc(doc(db, 'usuarios', uid, 'ingresos', btn.dataset.delIngreso));
-        mostrarToast('Ingreso eliminado');
-      };
-    });
-  }
-
-  // Metas
-  document.getElementById('form-meta').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const user = auth.currentUser;
-    if (!user) return;
-    const nombre = document.getElementById('m-nombre').value.trim();
-    const montoObjetivo = parsearMontoBanco(document.getElementById('m-objetivo').value);
-    const fechaObjetivo = document.getElementById('m-fecha-objetivo').value || null;
-    if (!nombre || !(montoObjetivo > 0)) return;
-
-    await addDoc(collection(db, 'usuarios', user.uid, 'metas'), {
-      nombre, montoObjetivo, montoAhorrado: 0, fechaObjetivo, creadoEn: serverTimestamp()
-    });
-    e.target.reset();
-    mostrarToast('Meta creada 🎯');
-  });
-
-  function renderizarMetas(uid) {
-    const listaMetas = document.getElementById('lista-metas');
-    if (!estado.metas.length) {
-      listaMetas.innerHTML = '<div class="bloque-lista vacio">Crea tu primera meta de ahorro arriba.</div>';
-      return;
-    }
-
-    listaMetas.innerHTML = estado.metas.map(m => {
-      const pct = m.montoObjetivo > 0 ? Math.min(100, Math.round((m.montoAhorrado / m.montoObjetivo) * 100)) : 0;
-      return `
-        <div class="tarjeta-meta">
-          <div class="meta-top">
-            <span class="meta-nombre">${escaparHtml(m.nombre)}</span>
-            <span class="meta-pct">${pct}%</span>
-          </div>
-          <div class="barra-progreso">
-            <div class="barra-relleno" style="width:${pct}%"></div>
-          </div>
-          <div class="meta-cifras">
-            <span>${formatearMonedaBanco(m.montoAhorrado || 0)}</span>
-            <span>Meta: ${formatearMonedaBanco(m.montoObjetivo)}</span>
-          </div>
-          <form class="form-aporte-inline" data-meta-id="${m.id}">
-            <input type="text" class="input-dinero" inputmode="decimal" placeholder="Abonar (0,00)" required>
-            <button type="submit">+ Abonar</button>
-            <button type="button" class="btn-mini del" data-del-meta="${m.id}" style="padding:8px 10px;">✕</button>
-          </form>
-        </div>
-      `;
-    }).join('');
-
-    enlazarInputsDinero(listaMetas);
-
-    listaMetas.querySelectorAll('.form-aporte-inline').forEach(form => {
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const val = parsearMontoBanco(form.querySelector('input').value);
-        if (!(val > 0)) return;
-        await updateDoc(doc(db, 'usuarios', uid, 'metas', form.dataset.metaId), {
-          montoAhorrado: increment(val)
-        });
-        mostrarToast('Abono guardado 💰');
-      });
-    });
-
-    listaMetas.querySelectorAll('[data-del-meta]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        await deleteDoc(doc(db, 'usuarios', uid, 'metas', btn.dataset.delMeta));
-        mostrarToast('Meta eliminada');
-      });
-    });
-  }
-
-  // Suscripciones Firebase
-  let unsubs = [];
-  onAuthStateChanged(auth, async (usuario) => {
-    pantallaCargando.classList.add('oculto');
-    unsubs.forEach(u => u());
-    unsubs = [];
-
-    if (usuario) {
-      pantallaAuth.classList.add('oculto');
-      pantallaDashboard.classList.remove('oculto');
-
-      const snap = await getDoc(doc(db, 'usuarios', usuario.uid));
-      const nombre = snap.exists() ? snap.data().nombre : 'Usuario';
-      document.getElementById('texto-saludo').textContent = `Hola, ${nombre}`;
-
-      unsubs.push(onSnapshot(
-        query(collection(db, 'usuarios', usuario.uid, 'deudas'), orderBy('creadoEn', 'desc')),
-        s => {
-          estado.deudas = s.docs.map(d => ({ id: d.id, ...d.data() }));
-          actualizarSelectorMeses();
-          renderizarTodo(usuario.uid);
-        }
-      ));
-
-      unsubs.push(onSnapshot(
-        query(collection(db, 'usuarios', usuario.uid, 'ingresos'), orderBy('creadoEn', 'desc')),
-        s => {
-          estado.ingresos = s.docs.map(d => ({ id: d.id, ...d.data() }));
-          actualizarSelectorMeses();
-          renderizarTodo(usuario.uid);
-        }
-      ));
-
-      unsubs.push(onSnapshot(
-        query(collection(db, 'usuarios', usuario.uid, 'metas'), orderBy('creadoEn', 'desc')),
-        s => {
-          estado.metas = s.docs.map(d => ({ id: d.id, ...d.data() }));
-          renderizarMetas(usuario.uid);
-        }
-      ));
-    } else {
-      pantallaDashboard.classList.add('oculto');
-      pantallaAuth.classList.remove('oculto');
-    }
-  });
-</script>
-</body>
-</html>
+        <button type="button" class
