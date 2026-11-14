@@ -278,11 +278,11 @@
     cursor: pointer;
   }
 
-  /* Tabs superiores estilo Monefy */
+  /* Tabs superiores */
   .nav-secciones {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
     background: rgba(255, 255, 255, 0.45);
     backdrop-filter: blur(8px);
     padding: 5px;
@@ -291,8 +291,8 @@
     margin-bottom: 16px;
   }
   .nav-boton {
-    padding: 9px 4px;
-    font-size: 13px;
+    padding: 9px 2px;
+    font-size: 12.5px;
     font-weight: 600;
     color: var(--ink-soft);
     border-radius: 10px;
@@ -365,14 +365,14 @@
 
   .kpis-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
   .kpi-pill {
     background: var(--bg-elevated);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-md);
-    padding: 12px 6px;
+    padding: 12px 8px;
     text-align: center;
     cursor: pointer;
     transition: transform .15s, border-color .15s;
@@ -391,7 +391,7 @@
   .punto { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
   .kpi-monto {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 600;
   }
 
@@ -956,6 +956,7 @@
 
   <nav class="nav-secciones">
     <button type="button" class="nav-boton activa" data-seccion="resumen">Balance</button>
+    <button type="button" class="nav-boton" data-seccion="gastos">Gastos</button>
     <button type="button" class="nav-boton" data-seccion="deudas">Deudas</button>
     <button type="button" class="nav-boton" data-seccion="ingresos">Ingresos</button>
     <button type="button" class="nav-boton" data-seccion="metas">Metas</button>
@@ -983,9 +984,13 @@
           <div class="kpi-titulo"><span class="punto" style="background:var(--ingreso)"></span>Ingresos</div>
           <div class="kpi-monto" style="color:var(--ingreso)" id="kpi-ingresos">$ 0,00</div>
         </div>
+        <div class="kpi-pill" onclick="document.querySelector('[data-seccion=gastos]').click()">
+          <div class="kpi-titulo"><span class="punto" style="background:var(--debito)"></span>Gastos del día</div>
+          <div class="kpi-monto" style="color:var(--debito)" id="kpi-gastos">$ 0,00</div>
+        </div>
         <div class="kpi-pill" onclick="document.querySelector('[data-seccion=deudas]').click()">
-          <div class="kpi-titulo"><span class="punto" style="background:var(--debito)"></span>Saldo Debo</div>
-          <div class="kpi-monto" style="color:var(--debito)" id="kpi-debo">$ 0,00</div>
+          <div class="kpi-titulo"><span class="punto" style="background:#9A342A"></span>Saldo Debo</div>
+          <div class="kpi-monto" style="color:#9A342A" id="kpi-debo">$ 0,00</div>
         </div>
         <div class="kpi-pill" onclick="document.querySelector('[data-seccion=deudas]').click()">
           <div class="kpi-titulo"><span class="punto" style="background:var(--credito)"></span>Por cobrar</div>
@@ -996,9 +1001,19 @@
 
     <div class="bloque-lista">
       <div class="cabecera-bloque">
-        <h2 class="seccion-titulo">Deudas activas y últimos ingresos</h2>
+        <h2 class="seccion-titulo">Últimos movimientos y deudas</h2>
       </div>
       <div id="lista-recientes"></div>
+    </div>
+  </section>
+
+  <!-- ===== SECCIÓN GASTOS ===== -->
+  <section class="panel-seccion oculto" id="panel-gastos">
+    <div class="bloque-lista">
+      <div class="cabecera-bloque">
+        <h2 class="seccion-titulo">Gastos y egresos diarios</h2>
+      </div>
+      <div id="lista-gastos"></div>
     </div>
   </section>
 
@@ -1051,7 +1066,7 @@
   <div class="dock-monefy">
     <button type="button" class="btn-monefy gasto" id="abrir-modal-deuda">
       <span class="simbolo-circulo">−</span>
-      <span>Deuda / Gasto</span>
+      <span>Gasto / Deuda</span>
     </button>
     <button type="button" class="btn-monefy ingreso" id="abrir-modal-ingreso">
       <span class="simbolo-circulo">+</span>
@@ -1077,7 +1092,10 @@
       <div class="visor-ayuda" id="visor-preview-banco">Monto exacto: $ 0,00</div>
 
       <div class="grid-categorias" id="cats-deuda">
-        <button type="button" class="cat-opcion seleccionada" data-val="debo">
+        <button type="button" class="cat-opcion seleccionada" data-val="gasto">
+          <span>🛒</span>Gasto diario
+        </button>
+        <button type="button" class="cat-opcion" data-val="debo">
           <span>💸</span>Debo pagar
         </button>
         <button type="button" class="cat-opcion" data-val="me_deben">
@@ -1086,7 +1104,7 @@
       </div>
 
       <div class="grid-categorias oculto" id="cats-ingreso">
-<button type="button" class="cat-opcion seleccionada" data-val="salario">
+        <button type="button" class="cat-opcion seleccionada" data-val="salario">
           <span>💼</span>Salario
         </button>
         <button type="button" class="cat-opcion" data-val="extra">
@@ -1098,7 +1116,7 @@
       </div>
 
       <div class="fila-inputs-sheet">
-        <input type="text" id="rapido-desc" required placeholder="Concepto (ej. Arriendo, Préstamo)">
+        <input type="text" id="rapido-desc" required placeholder="Concepto (ej. Café, Mercado, Arriendo)">
         <input type="date" id="rapido-fecha">
       </div>
 
@@ -1173,9 +1191,9 @@
   const db = getFirestore(app);
 
   let estado = {
-    deudas: [], ingresos: [], metas: [],
+    deudas: [], ingresos: [], gastos: [], metas: [],
     filtroDeuda: 'todas', filtroMes: 'todos',
-    tipoModal: 'deuda', subcategoriaModal: 'debo'
+    tipoModal: 'deuda', subcategoriaModal: 'gasto'
   };
 
   const pantallaCargando = document.getElementById('pantalla-cargando');
@@ -1212,6 +1230,7 @@
     const hoy = new Date();
     mesesSet.add(`${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`);
     estado.ingresos.forEach(i => { if (i.fecha?.length >= 7) mesesSet.add(i.fecha.slice(0, 7)); });
+    estado.gastos.forEach(g => { if (g.fecha?.length >= 7) mesesSet.add(g.fecha.slice(0, 7)); });
     estado.deudas.forEach(d => { if (d.fechaLimite?.length >= 7) mesesSet.add(d.fechaLimite.slice(0, 7)); });
 
     const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -1233,6 +1252,7 @@
   const botonesNav = document.querySelectorAll('.nav-boton');
   const paneles = {
     resumen: document.getElementById('panel-resumen'),
+    gastos: document.getElementById('panel-gastos'),
     deudas: document.getElementById('panel-deudas'),
     ingresos: document.getElementById('panel-ingresos'),
     metas: document.getElementById('panel-metas'),
@@ -1301,10 +1321,10 @@
     document.getElementById('visor-preview-banco').textContent = 'Monto exacto: $ 0,00';
     inputFechaRapido.valueAsDate = new Date();
     if (tipo === 'deuda') {
-      document.getElementById('modal-titulo').textContent = 'Nueva deuda o gasto por pagar';
+      document.getElementById('modal-titulo').textContent = 'Registrar gasto o deuda';
       catsDeuda.classList.remove('oculto');
       catsIngreso.classList.add('oculto');
-      estado.subcategoriaModal = 'debo';
+      estado.subcategoriaModal = 'gasto';
       catsDeuda.querySelectorAll('.cat-opcion').forEach((b, i) => b.classList.toggle('seleccionada', i === 0));
       document.getElementById('btn-guardar-rapido').style.background = 'var(--debito)';
     } else {
@@ -1345,11 +1365,18 @@
     btnGuardar.disabled = true;
     try {
       if (estado.tipoModal === 'deuda') {
-        await addDoc(collection(db, 'usuarios', user.uid, 'deudas'), {
-          descripcion, monto, montoOriginal: monto, montoAbonado: 0, abonos: [],
-          tipo: estado.subcategoriaModal, fechaLimite: fecha, estado: 'pendiente', creadoEn: serverTimestamp()
-        });
-        mostrarToast('Deuda registrada ✓');
+        if (estado.subcategoriaModal === 'gasto') {
+          await addDoc(collection(db, 'usuarios', user.uid, 'gastos'), {
+            descripcion, monto, fecha, creadoEn: serverTimestamp()
+          });
+          mostrarToast('Gasto registrado ✓');
+        } else {
+          await addDoc(collection(db, 'usuarios', user.uid, 'deudas'), {
+            descripcion, monto, montoOriginal: monto, montoAbonado: 0, abonos: [],
+            tipo: estado.subcategoriaModal, fechaLimite: fecha, estado: 'pendiente', creadoEn: serverTimestamp()
+          });
+          mostrarToast('Deuda registrada ✓');
+        }
       } else {
         await addDoc(collection(db, 'usuarios', user.uid, 'ingresos'), {
           descripcion, monto, categoria: estado.subcategoriaModal, fecha, creadoEn: serverTimestamp()
@@ -1378,9 +1405,10 @@
     return lista.filter(item => item[campoFecha]?.startsWith(estado.filtroMes));
   }
 
-  function actualizarDonut(ingresosFiltrados, deudasFiltradas) {
-    let totalIngresos = 0, saldoDebo = 0, saldoMeDeben = 0;
+  function actualizarDonut(ingresosFiltrados, gastosFiltrados, deudasFiltradas) {
+    let totalIngresos = 0, totalGastos = 0, saldoDebo = 0, saldoMeDeben = 0;
     ingresosFiltrados.forEach(i => totalIngresos += Number(i.monto || 0));
+    gastosFiltrados.forEach(g => totalGastos += Number(g.monto || 0));
     deudasFiltradas.forEach(d => {
       const info = obtenerDatosDeuda(d);
       if (!info.estaSaldada) {
@@ -1389,8 +1417,9 @@
       }
     });
 
-    const disponibleNeto = totalIngresos + saldoMeDeben - saldoDebo;
+    const disponibleNeto = totalIngresos + saldoMeDeben - totalGastos - saldoDebo;
     document.getElementById('kpi-ingresos').textContent = formatearMonedaBanco(totalIngresos);
+    document.getElementById('kpi-gastos').textContent = formatearMonedaBanco(totalGastos);
     document.getElementById('kpi-debo').textContent = formatearMonedaBanco(saldoDebo);
     document.getElementById('kpi-me-deben').textContent = formatearMonedaBanco(saldoMeDeben);
 
@@ -1398,7 +1427,8 @@
     balanceEl.textContent = formatearMonedaBanco(disponibleNeto);
     balanceEl.style.color = disponibleNeto >= 0 ? 'var(--ingreso)' : 'var(--debito)';
 
-    const sumaTotal = totalIngresos + saldoDebo + saldoMeDeben;
+    const salidasTotales = totalGastos + saldoDebo;
+    const sumaTotal = totalIngresos + salidasTotales + saldoMeDeben;
     const circunferencia = 2 * Math.PI * 40;
     const arcoIng = document.getElementById('arco-ingresos');
     const arcoDeb = document.getElementById('arco-me-deben');
@@ -1408,19 +1438,19 @@
       arcoIng.setAttribute('stroke-dasharray', `0 ${circunferencia}`);
       arcoDeb.setAttribute('stroke-dasharray', `0 ${circunferencia}`);
       arcoDebo.setAttribute('stroke-dasharray', `0 ${circunferencia}`);
-      document.getElementById('porcentaje-salud').textContent = 'Sin saldos pendientes';
+      document.getElementById('porcentaje-salud').textContent = 'Sin movimientos';
       return;
     }
 
     const lenIng = (totalIngresos / sumaTotal) * circunferencia;
     const lenMeDeb = (saldoMeDeben / sumaTotal) * circunferencia;
-    const lenDebo = (saldoDebo / sumaTotal) * circunferencia;
+    const lenSalidas = (salidasTotales / sumaTotal) * circunferencia;
 
     arcoIng.setAttribute('stroke-dasharray', `${lenIng} ${circunferencia}`);
     arcoIng.setAttribute('stroke-dashoffset', '0');
     arcoDeb.setAttribute('stroke-dasharray', `${lenMeDeb} ${circunferencia}`);
     arcoDeb.setAttribute('stroke-dashoffset', `${-lenIng}`);
-    arcoDebo.setAttribute('stroke-dasharray', `${lenDebo} ${circunferencia}`);
+    arcoDebo.setAttribute('stroke-dasharray', `${lenSalidas} ${circunferencia}`);
     arcoDebo.setAttribute('stroke-dashoffset', `${-(lenIng + lenMeDeb)}`);
 
     const pctPositivo = Math.round(((totalIngresos + saldoMeDeben) / sumaTotal) * 100);
@@ -1489,6 +1519,22 @@
     `;
   }
 
+  function crearHtmlItemGasto(g) {
+    return `
+      <div class="item-movimiento">
+        <div class="icono-cat debo">🛒</div>
+        <div class="info-mov">
+          <div class="desc-mov">${escaparHtml(g.descripcion)}</div>
+          <div class="meta-mov">GASTO DIARIO · ${g.fecha || 'Sin fecha'}</div>
+        </div>
+        <div class="saldo-box">
+          <div class="valor-mov debo">− ${formatearMonedaBanco(g.monto)}</div>
+          <div style="margin-top:4px;"><button type="button" class="btn-mini del" data-del-gasto="${g.id}">Borrar</button></div>
+        </div>
+      </div>
+    `;
+  }
+
   function crearHtmlItemIngreso(it) {
     const iconos = { salario: '💼', extra: '⚡', otro: '🎁' };
     return `
@@ -1526,8 +1572,9 @@
 
   function renderizarTodo(uid) {
     const ingresosMes = filtrarPorPeriodo(estado.ingresos, 'fecha');
+    const gastosMes = filtrarPorPeriodo(estado.gastos, 'fecha');
     const deudasMes = filtrarPorPeriodo(estado.deudas, 'fechaLimite');
-    actualizarDonut(ingresosMes, deudasMes);
+    actualizarDonut(ingresosMes, gastosMes, deudasMes);
 
     const deudasFiltradas = deudasMes.filter(d => {
       const info = obtenerDatosDeuda(d);
@@ -1535,6 +1582,10 @@
       if (info.estaSaldada) return false;
       return estado.filtroDeuda === 'todas' ? true : d.tipo === estado.filtroDeuda;
     });
+
+    document.getElementById('lista-gastos').innerHTML = gastosMes.length
+      ? gastosMes.map(crearHtmlItemGasto).join('')
+      : '<div class="vacio">No has registrado gastos diarios en este periodo.</div>';
 
     document.getElementById('lista-deudas').innerHTML = deudasFiltradas.length
       ? deudasFiltradas.map(crearTarjetaDeuda).join('')
@@ -1544,10 +1595,15 @@
       ? ingresosMes.map(crearHtmlItemIngreso).join('')
       : '<div class="vacio">Aún no has registrado ingresos en este periodo.</div>';
 
-    const pendientes = deudasMes.filter(d => !obtenerDatosDeuda(d).estaSaldada).slice(0, 4);
+    const pendientes = deudasMes.filter(d => !obtenerDatosDeuda(d).estaSaldada).slice(0, 3);
+    const ultimosGastos = gastosMes.slice(0, 3);
     const ultimosIngresos = ingresosMes.slice(0, 3);
-    const htmlResumen = [...pendientes.map(crearTarjetaDeuda), ...ultimosIngresos.map(crearHtmlItemIngreso)].join('');
-    document.getElementById('lista-recientes').innerHTML = htmlResumen || '<div class="vacio">Usa <b>− Deuda / Gasto</b> o <b>+ Ingreso</b> para comenzar tu mes.</div>';
+    const htmlResumen = [
+      ...ultimosGastos.map(crearHtmlItemGasto),
+      ...ultimosIngresos.map(crearHtmlItemIngreso),
+      ...pendientes.map(crearTarjetaDeuda)
+    ].join('');
+    document.getElementById('lista-recientes').innerHTML = htmlResumen || '<div class="vacio">Usa <b>− Gasto / Deuda</b> o <b>+ Ingreso</b> para comenzar tu mes.</div>';
 
     enlazarInputsDinero(document.getElementById('pantalla-dashboard'));
 
@@ -1574,6 +1630,13 @@
         if (!(valor > 0)) return;
         form.querySelector('.btn-confirmar-abono').disabled = true;
         await registrarAbonoEnFirebase(uid, form.dataset.formAbono, valor);
+      };
+    });
+
+    document.querySelectorAll('[data-del-gasto]').forEach(btn => {
+      btn.onclick = async () => {
+        await deleteDoc(doc(db, 'usuarios', uid, 'gastos', btn.dataset.delGasto));
+        mostrarToast('Gasto eliminado');
       };
     });
 
@@ -1666,6 +1729,11 @@
       const snap = await getDoc(doc(db, 'usuarios', usuario.uid));
       document.getElementById('texto-saludo').textContent = `Hola, ${snap.exists() ? snap.data().nombre : 'Usuario'}`;
 
+      unsubs.push(onSnapshot(query(collection(db, 'usuarios', usuario.uid, 'gastos'), orderBy('creadoEn', 'desc')), s => {
+        estado.gastos = s.docs.map(d => ({ id: d.id, ...d.data() }));
+        actualizarSelectorMeses();
+        renderizarTodo(usuario.uid);
+      }));
       unsubs.push(onSnapshot(query(collection(db, 'usuarios', usuario.uid, 'deudas'), orderBy('creadoEn', 'desc')), s => {
         estado.deudas = s.docs.map(d => ({ id: d.id, ...d.data() }));
         actualizarSelectorMeses();
