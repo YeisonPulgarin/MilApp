@@ -1086,4 +1086,605 @@
       </div>
 
       <div class="grid-categorias oculto" id="cats-ingreso">
-        <button type="button" class
+<button type="button" class="cat-opcion seleccionada" data-val="salario">
+          <span>💼</span>Salario
+        </button>
+        <button type="button" class="cat-opcion" data-val="extra">
+          <span>⚡</span>Extra
+        </button>
+        <button type="button" class="cat-opcion" data-val="otro">
+          <span>🎁</span>Otro
+        </button>
+      </div>
+
+      <div class="fila-inputs-sheet">
+        <input type="text" id="rapido-desc" required placeholder="Concepto (ej. Arriendo, Préstamo)">
+        <input type="date" id="rapido-fecha">
+      </div>
+
+      <button type="submit" class="boton-principal" id="btn-guardar-rapido">Guardar registro</button>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    onAuthStateChanged, signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getFirestore, doc, setDoc, getDoc, collection, addDoc, query,
+    orderBy, onSnapshot, updateDoc, deleteDoc, serverTimestamp, increment, arrayUnion
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBOYFpzUUxULGH-xbV3-6g7bNwQGnoDijA",
+    authDomain: "milap7-6e772.firebaseapp.com",
+    projectId: "milap7-6e772",
+    storageBucket: "milap7-6e772.firebasestorage.app",
+    messagingSenderId: "811114533082",
+    appId: "1:811114533082:web:3feb16039c198a37b3d5e3"
+  };
+
+  const FORMATO_BANCO = new Intl.NumberFormat('es-CO', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  function formatearMonedaBanco(valor) {
+    return `$ ${FORMATO_BANCO.format(Number(valor) || 0)}`;
+  }
+
+  function parsearMontoBanco(texto) {
+    if (!texto) return 0;
+    const limpio = String(texto).replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, '');
+    return parseFloat(limpio) || 0;
+  }
+
+  function aplicarMascaraBanco(inputEl) {
+    let val = inputEl.value.replace(/[^0-9,]/g, '');
+    const partes = val.split(',');
+    let enteros = partes[0].replace(/^0+(?=\d)/, '');
+    enteros = enteros.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    inputEl.value = partes.length > 1 ? `${enteros || '0'},${partes[1].slice(0, 2)}` : enteros;
+  }
+
+  function enlazarInputsDinero(contenedor = document) {
+    contenedor.querySelectorAll('.input-dinero').forEach(inp => {
+      if (inp.dataset.mascaraActiva) return;
+      inp.dataset.mascaraActiva = '1';
+      inp.addEventListener('input', () => {
+        aplicarMascaraBanco(inp);
+        if (inp.id === 'rapido-monto') {
+          const num = parsearMontoBanco(inp.value);
+          document.getElementById('visor-preview-banco').textContent = `Monto exacto: ${formatearMonedaBanco(num)}`;
+        }
+      });
+      inp.addEventListener('blur', () => {
+        const num = parsearMontoBanco(inp.value);
+        if (num > 0) inp.value = FORMATO_BANCO.format(num);
+      });
+    });
+  }
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let estado = {
+    deudas: [], ingresos: [], metas: [],
+    filtroDeuda: 'todas', filtroMes: 'todos',
+    tipoModal: 'deuda', subcategoriaModal: 'debo'
+  };
+
+  const pantallaCargando = document.getElementById('pantalla-cargando');
+  const pantallaAuth = document.getElementById('pantalla-auth');
+  const pantallaDashboard = document.getElementById('pantalla-dashboard');
+  const toastEl = document.getElementById('toast');
+  const filtroMesSelect = document.getElementById('filtro-mes');
+
+  function mostrarToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('visible');
+    setTimeout(() => toastEl.classList.remove('visible'), 2500);
+  }
+
+  function escaparHtml(texto) {
+    const div = document.createElement('div');
+    div.textContent = texto || '';
+    return div.innerHTML;
+  }
+
+  function obtenerDatosDeuda(d) {
+    const montoOriginal = Number(d.montoOriginal ?? d.monto ?? 0);
+    const montoAbonado = Number(d.montoAbonado ?? (d.estado === 'pagada' ? montoOriginal : 0));
+    const saldoRestante = Math.max(0, Number((montoOriginal - montoAbonado).toFixed(2)));
+    const estaSaldada = d.estado === 'pagada' || saldoRestante <= 0;
+    const porcentaje = montoOriginal > 0 ? Math.min(100, Math.round((montoAbonado / montoOriginal) * 100)) : 100;
+    return { montoOriginal, montoAbonado, saldoRestante, estaSaldada, porcentaje };
+  }
+
+  enlazarInputsDinero();
+
+  function actualizarSelectorMeses() {
+    const mesesSet = new Set();
+    const hoy = new Date();
+    mesesSet.add(`${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`);
+    estado.ingresos.forEach(i => { if (i.fecha?.length >= 7) mesesSet.add(i.fecha.slice(0, 7)); });
+    estado.deudas.forEach(d => { if (d.fechaLimite?.length >= 7) mesesSet.add(d.fechaLimite.slice(0, 7)); });
+
+    const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const valorPrevio = filtroMesSelect.value;
+    const opcionesHtml = ['<option value="todos">Todo el historial</option>'];
+    Array.from(mesesSet).sort().reverse().forEach(ym => {
+      const [anio, mes] = ym.split('-');
+      opcionesHtml.push(`<option value="${ym}">${nombresMeses[parseInt(mes, 10) - 1]} ${anio}</option>`);
+    });
+    filtroMesSelect.innerHTML = opcionesHtml.join('');
+    if ([...mesesSet, 'todos'].includes(valorPrevio)) filtroMesSelect.value = valorPrevio;
+  }
+
+  filtroMesSelect.addEventListener('change', () => {
+    estado.filtroMes = filtroMesSelect.value;
+    renderizarTodo(auth.currentUser?.uid);
+  });
+
+  const botonesNav = document.querySelectorAll('.nav-boton');
+  const paneles = {
+    resumen: document.getElementById('panel-resumen'),
+    deudas: document.getElementById('panel-deudas'),
+    ingresos: document.getElementById('panel-ingresos'),
+    metas: document.getElementById('panel-metas'),
+  };
+
+  function mostrarSeccion(nombre) {
+    botonesNav.forEach(b => b.classList.toggle('activa', b.dataset.seccion === nombre));
+    Object.entries(paneles).forEach(([clave, el]) => el.classList.toggle('oculto', clave !== nombre));
+  }
+  botonesNav.forEach(b => b.addEventListener('click', () => mostrarSeccion(b.dataset.seccion)));
+
+  let modoAuth = 'entrar';
+  const pestanas = document.querySelectorAll('.pestana');
+  const formAuth = document.getElementById('form-auth');
+  const campoConfirmarEnv = document.getElementById('campo-confirmar-envoltura');
+  const campoConfirmar = document.getElementById('campo-confirmar');
+  const btnAuth = document.getElementById('btn-auth');
+  const mensajeAuth = document.getElementById('mensaje-auth');
+
+  pestanas.forEach(p => p.addEventListener('click', () => {
+    modoAuth = p.dataset.modo;
+    pestanas.forEach(x => x.classList.toggle('activa', x.dataset.modo === modoAuth));
+    campoConfirmarEnv.classList.toggle('oculto', modoAuth !== 'registrar');
+    campoConfirmar.required = modoAuth === 'registrar';
+    btnAuth.textContent = modoAuth === 'registrar' ? 'Crear cuenta' : 'Iniciar sesión';
+    mensajeAuth.textContent = '';
+  }));
+
+  formAuth.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    mensajeAuth.textContent = '';
+    const nombre = document.getElementById('campo-nombre').value.trim();
+    const pass = document.getElementById('campo-contrasena').value;
+    if (modoAuth === 'registrar' && pass !== campoConfirmar.value) {
+      mensajeAuth.textContent = 'Las contraseñas no coinciden.';
+      return;
+    }
+    btnAuth.disabled = true;
+    try {
+      const email = nombre.toLowerCase().replace(/\s+/g, '_') + '@lukasapp.local';
+      if (modoAuth === 'registrar') {
+        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+        await setDoc(doc(db, 'usuarios', cred.user.uid), { nombre, creadoEn: serverTimestamp() });
+      } else {
+        await signInWithEmailAndPassword(auth, email, pass);
+      }
+    } catch {
+      mensajeAuth.textContent = 'Verifica tus credenciales e inténtalo de nuevo.';
+    } finally {
+      btnAuth.disabled = false;
+    }
+  });
+
+  document.getElementById('btn-salir').addEventListener('click', () => signOut(auth));
+
+  const modalRegistro = document.getElementById('modal-registro');
+  const catsDeuda = document.getElementById('cats-deuda');
+  const catsIngreso = document.getElementById('cats-ingreso');
+  const inputMontoRapido = document.getElementById('rapido-monto');
+  const inputDescRapido = document.getElementById('rapido-desc');
+  const inputFechaRapido = document.getElementById('rapido-fecha');
+
+  function abrirModal(tipo) {
+    estado.tipoModal = tipo;
+    document.getElementById('form-rapido').reset();
+    document.getElementById('visor-preview-banco').textContent = 'Monto exacto: $ 0,00';
+    inputFechaRapido.valueAsDate = new Date();
+    if (tipo === 'deuda') {
+      document.getElementById('modal-titulo').textContent = 'Nueva deuda o gasto por pagar';
+      catsDeuda.classList.remove('oculto');
+      catsIngreso.classList.add('oculto');
+      estado.subcategoriaModal = 'debo';
+      catsDeuda.querySelectorAll('.cat-opcion').forEach((b, i) => b.classList.toggle('seleccionada', i === 0));
+      document.getElementById('btn-guardar-rapido').style.background = 'var(--debito)';
+    } else {
+      document.getElementById('modal-titulo').textContent = 'Nuevo ingreso';
+      catsDeuda.classList.add('oculto');
+      catsIngreso.classList.remove('oculto');
+      estado.subcategoriaModal = 'salario';
+      catsIngreso.querySelectorAll('.cat-opcion').forEach((b, i) => b.classList.toggle('seleccionada', i === 0));
+      document.getElementById('btn-guardar-rapido').style.background = 'var(--ingreso)';
+    }
+    modalRegistro.classList.remove('oculto');
+    setTimeout(() => inputMontoRapido.focus(), 100);
+  }
+
+  document.getElementById('abrir-modal-deuda').addEventListener('click', () => abrirModal('deuda'));
+  document.getElementById('abrir-modal-ingreso').addEventListener('click', () => abrirModal('ingreso'));
+  document.getElementById('cerrar-modal').addEventListener('click', () => modalRegistro.classList.add('oculto'));
+  modalRegistro.addEventListener('click', (e) => { if (e.target === modalRegistro) modalRegistro.classList.add('oculto'); });
+
+  document.querySelectorAll('.cat-opcion').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.parentElement.querySelectorAll('.cat-opcion').forEach(b => b.classList.remove('seleccionada'));
+      btn.classList.add('seleccionada');
+      estado.subcategoriaModal = btn.dataset.val;
+    });
+  });
+
+  document.getElementById('form-rapido').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (!user) return;
+    const monto = parsearMontoBanco(inputMontoRapido.value);
+    const descripcion = inputDescRapido.value.trim();
+    const fecha = inputFechaRapido.value || null;
+    if (!(monto > 0) || !descripcion) return;
+
+    const btnGuardar = document.getElementById('btn-guardar-rapido');
+    btnGuardar.disabled = true;
+    try {
+      if (estado.tipoModal === 'deuda') {
+        await addDoc(collection(db, 'usuarios', user.uid, 'deudas'), {
+          descripcion, monto, montoOriginal: monto, montoAbonado: 0, abonos: [],
+          tipo: estado.subcategoriaModal, fechaLimite: fecha, estado: 'pendiente', creadoEn: serverTimestamp()
+        });
+        mostrarToast('Deuda registrada ✓');
+      } else {
+        await addDoc(collection(db, 'usuarios', user.uid, 'ingresos'), {
+          descripcion, monto, categoria: estado.subcategoriaModal, fecha, creadoEn: serverTimestamp()
+        });
+        mostrarToast('Ingreso registrado ✓');
+      }
+      modalRegistro.classList.add('oculto');
+    } catch {
+      mostrarToast('Error al guardar');
+    } finally {
+      btnGuardar.disabled = false;
+    }
+  });
+
+  document.querySelectorAll('[data-filtro-deuda]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('[data-filtro-deuda]').forEach(c => c.classList.remove('activo'));
+      chip.classList.add('activo');
+      estado.filtroDeuda = chip.dataset.filtroDeuda;
+      renderizarTodo(auth.currentUser?.uid);
+    });
+  });
+
+  function filtrarPorPeriodo(lista, campoFecha) {
+    if (estado.filtroMes === 'todos') return lista;
+    return lista.filter(item => item[campoFecha]?.startsWith(estado.filtroMes));
+  }
+
+  function actualizarDonut(ingresosFiltrados, deudasFiltradas) {
+    let totalIngresos = 0, saldoDebo = 0, saldoMeDeben = 0;
+    ingresosFiltrados.forEach(i => totalIngresos += Number(i.monto || 0));
+    deudasFiltradas.forEach(d => {
+      const info = obtenerDatosDeuda(d);
+      if (!info.estaSaldada) {
+        if (d.tipo === 'debo') saldoDebo += info.saldoRestante;
+        else saldoMeDeben += info.saldoRestante;
+      }
+    });
+
+    const disponibleNeto = totalIngresos + saldoMeDeben - saldoDebo;
+    document.getElementById('kpi-ingresos').textContent = formatearMonedaBanco(totalIngresos);
+    document.getElementById('kpi-debo').textContent = formatearMonedaBanco(saldoDebo);
+    document.getElementById('kpi-me-deben').textContent = formatearMonedaBanco(saldoMeDeben);
+
+    const balanceEl = document.getElementById('balance-general');
+    balanceEl.textContent = formatearMonedaBanco(disponibleNeto);
+    balanceEl.style.color = disponibleNeto >= 0 ? 'var(--ingreso)' : 'var(--debito)';
+
+    const sumaTotal = totalIngresos + saldoDebo + saldoMeDeben;
+    const circunferencia = 2 * Math.PI * 40;
+    const arcoIng = document.getElementById('arco-ingresos');
+    const arcoDeb = document.getElementById('arco-me-deben');
+    const arcoDebo = document.getElementById('arco-debo');
+
+    if (sumaTotal === 0) {
+      arcoIng.setAttribute('stroke-dasharray', `0 ${circunferencia}`);
+      arcoDeb.setAttribute('stroke-dasharray', `0 ${circunferencia}`);
+      arcoDebo.setAttribute('stroke-dasharray', `0 ${circunferencia}`);
+      document.getElementById('porcentaje-salud').textContent = 'Sin saldos pendientes';
+      return;
+    }
+
+    const lenIng = (totalIngresos / sumaTotal) * circunferencia;
+    const lenMeDeb = (saldoMeDeben / sumaTotal) * circunferencia;
+    const lenDebo = (saldoDebo / sumaTotal) * circunferencia;
+
+    arcoIng.setAttribute('stroke-dasharray', `${lenIng} ${circunferencia}`);
+    arcoIng.setAttribute('stroke-dashoffset', '0');
+    arcoDeb.setAttribute('stroke-dasharray', `${lenMeDeb} ${circunferencia}`);
+    arcoDeb.setAttribute('stroke-dashoffset', `${-lenIng}`);
+    arcoDebo.setAttribute('stroke-dasharray', `${lenDebo} ${circunferencia}`);
+    arcoDebo.setAttribute('stroke-dashoffset', `${-(lenIng + lenMeDeb)}`);
+
+    const pctPositivo = Math.round(((totalIngresos + saldoMeDeben) / sumaTotal) * 100);
+    document.getElementById('porcentaje-salud').textContent = `${pctPositivo}% liquidez a favor`;
+  }
+
+  function crearTarjetaDeuda(d) {
+    const esDebo = d.tipo === 'debo';
+    const clase = esDebo ? 'debo' : 'me-deben';
+    const info = obtenerDatosDeuda(d);
+    const historial = Array.isArray(d.abonos) ? d.abonos : [];
+    const historialHtml = historial.length > 0 ? `
+      <div class="historial-abonos">
+        <div class="historial-abonos-titulo">Historial de abonos (${historial.length})</div>
+        ${historial.slice(-3).reverse().map(ab => `
+          <div class="linea-abono">
+            <span>${ab.fecha || 'Abono'}</span>
+            <span style="color:var(--ingreso); font-weight:600;">+ ${formatearMonedaBanco(ab.monto)}</span>
+          </div>
+        `).join('')}
+      </div>
+    ` : '';
+
+    return `
+      <div class="tarjeta-deuda ${info.estaSaldada ? 'saldada' : ''}">
+        <div class="deuda-top">
+          <div class="icono-cat ${clase}">${esDebo ? '💸' : '🤝'}</div>
+          <div class="info-mov">
+            <div class="desc-mov">${escaparHtml(d.descripcion)}</div>
+            <div class="meta-mov">${esDebo ? 'Debo pagar' : 'Me deben'} · Vence: ${d.fechaLimite || 'Sin fecha'}</div>
+          </div>
+          <div class="saldo-box">
+            <div class="saldo-etiqueta">${info.estaSaldada ? 'Saldada' : 'Saldo pendiente'}</div>
+            <div class="valor-mov ${info.estaSaldada ? 'ingreso' : clase}">${formatearMonedaBanco(info.saldoRestante)}</div>
+          </div>
+        </div>
+        <div class="deuda-progreso-wrap">
+          <div class="barra-deuda">
+            <div class="barra-deuda-fill ${info.estaSaldada ? 'completa' : clase}" style="width:${info.porcentaje}%"></div>
+          </div>
+          <div class="deuda-detalles-cifras">
+            <span>Abonado: ${formatearMonedaBanco(info.montoAbonado)} (${info.porcentaje}%)</span>
+            <span>Total: ${formatearMonedaBanco(info.montoOriginal)}</span>
+          </div>
+        </div>
+        <div class="deuda-acciones">
+          ${!info.estaSaldada
+            ? `<button type="button" class="btn-abonar-toggle" data-toggle-abono="${d.id}">💰 Abonar cuota</button>`
+            : `<span style="font-size:12px; font-weight:700; color:var(--ingreso);">✓ Deuda completada</span>`
+          }
+          <div class="acciones-secundarias">
+            <button type="button" class="btn-mini del" data-del-deuda="${d.id}">Eliminar</button>
+          </div>
+        </div>
+        ${!info.estaSaldada ? `
+          <div class="caja-abono oculto">
+            <form class="form-abono-deuda" data-form-abono="${d.id}" data-saldo="${info.saldoRestante}">
+              <input type="text" class="input-dinero" inputmode="decimal" placeholder="Valor abono (0,00)" required>
+              <button type="button" class="btn-todo-abono" data-pagar-todo="${d.id}" data-saldo="${info.saldoRestante}">Todo</button>
+              <button type="submit" class="btn-confirmar-abono">Guardar</button>
+            </form>
+          </div>
+        ` : ''}
+        ${historialHtml}
+      </div>
+    `;
+  }
+
+  function crearHtmlItemIngreso(it) {
+    const iconos = { salario: '💼', extra: '⚡', otro: '🎁' };
+    return `
+      <div class="item-movimiento">
+        <div class="icono-cat ingreso">${iconos[it.categoria] || '💰'}</div>
+        <div class="info-mov">
+          <div class="desc-mov">${escaparHtml(it.descripcion)}</div>
+          <div class="meta-mov">${(it.categoria || 'Ingreso').toUpperCase()} · ${it.fecha || 'Sin fecha'}</div>
+        </div>
+        <div class="saldo-box">
+          <div class="valor-mov ingreso">+ ${formatearMonedaBanco(it.monto)}</div>
+          <div style="margin-top:4px;"><button type="button" class="btn-mini del" data-del-ingreso="${it.id}">Borrar</button></div>
+        </div>
+      </div>
+    `;
+  }
+
+  async function registrarAbonoEnFirebase(uid, deudaId, valorAbono) {
+    const deuda = estado.deudas.find(x => x.id === deudaId);
+    if (!deuda || !(valorAbono > 0)) return;
+    const info = obtenerDatosDeuda(deuda);
+    const abonoReal = Math.min(valorAbono, info.saldoRestante);
+    const nuevoAbonado = Number((info.montoAbonado + abonoReal).toFixed(2));
+    const nuevoSaldo = Math.max(0, Number((info.montoOriginal - nuevoAbonado).toFixed(2)));
+    const saldada = nuevoSaldo <= 0;
+
+    await updateDoc(doc(db, 'usuarios', uid, 'deudas', deudaId), {
+      montoOriginal: info.montoOriginal,
+      montoAbonado: nuevoAbonado,
+      estado: saldada ? 'pagada' : 'pendiente',
+      abonos: arrayUnion({ monto: abonoReal, fecha: new Date().toISOString().split('T')[0] })
+    });
+    mostrarToast(saldada ? '¡Deuda saldada por completo! 🎉' : `Abono de ${formatearMonedaBanco(abonoReal)} registrado ✓`);
+  }
+
+  function renderizarTodo(uid) {
+    const ingresosMes = filtrarPorPeriodo(estado.ingresos, 'fecha');
+    const deudasMes = filtrarPorPeriodo(estado.deudas, 'fechaLimite');
+    actualizarDonut(ingresosMes, deudasMes);
+
+    const deudasFiltradas = deudasMes.filter(d => {
+      const info = obtenerDatosDeuda(d);
+      if (estado.filtroDeuda === 'pagadas') return info.estaSaldada;
+      if (info.estaSaldada) return false;
+      return estado.filtroDeuda === 'todas' ? true : d.tipo === estado.filtroDeuda;
+    });
+
+    document.getElementById('lista-deudas').innerHTML = deudasFiltradas.length
+      ? deudasFiltradas.map(crearTarjetaDeuda).join('')
+      : '<div class="vacio">No hay deudas en esta vista.</div>';
+
+    document.getElementById('lista-ingresos').innerHTML = ingresosMes.length
+      ? ingresosMes.map(crearHtmlItemIngreso).join('')
+      : '<div class="vacio">Aún no has registrado ingresos en este periodo.</div>';
+
+    const pendientes = deudasMes.filter(d => !obtenerDatosDeuda(d).estaSaldada).slice(0, 4);
+    const ultimosIngresos = ingresosMes.slice(0, 3);
+    const htmlResumen = [...pendientes.map(crearTarjetaDeuda), ...ultimosIngresos.map(crearHtmlItemIngreso)].join('');
+    document.getElementById('lista-recientes').innerHTML = htmlResumen || '<div class="vacio">Usa <b>− Deuda / Gasto</b> o <b>+ Ingreso</b> para comenzar tu mes.</div>';
+
+    enlazarInputsDinero(document.getElementById('pantalla-dashboard'));
+
+    document.querySelectorAll('[data-toggle-abono]').forEach(btn => {
+      btn.onclick = () => {
+        const caja = btn.closest('.tarjeta-deuda')?.querySelector('.caja-abono');
+        if (caja) {
+          caja.classList.toggle('oculto');
+          if (!caja.classList.contains('oculto')) caja.querySelector('input')?.focus();
+        }
+      };
+    });
+
+    document.querySelectorAll('[data-pagar-todo]').forEach(btn => {
+      btn.onclick = () => {
+        btn.closest('form').querySelector('input').value = FORMATO_BANCO.format(Number(btn.dataset.saldo || 0));
+      };
+    });
+
+    document.querySelectorAll('[data-form-abono]').forEach(form => {
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        const valor = parsearMontoBanco(form.querySelector('input').value);
+        if (!(valor > 0)) return;
+        form.querySelector('.btn-confirmar-abono').disabled = true;
+        await registrarAbonoEnFirebase(uid, form.dataset.formAbono, valor);
+      };
+    });
+
+    document.querySelectorAll('[data-del-deuda]').forEach(btn => {
+      btn.onclick = async () => {
+        await deleteDoc(doc(db, 'usuarios', uid, 'deudas', btn.dataset.delDeuda));
+        mostrarToast('Deuda eliminada');
+      };
+    });
+
+    document.querySelectorAll('[data-del-ingreso]').forEach(btn => {
+      btn.onclick = async () => {
+        await deleteDoc(doc(db, 'usuarios', uid, 'ingresos', btn.dataset.delIngreso));
+        mostrarToast('Ingreso eliminado');
+      };
+    });
+  }
+
+  document.getElementById('form-meta').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (!user) return;
+    const nombre = document.getElementById('m-nombre').value.trim();
+    const montoObjetivo = parsearMontoBanco(document.getElementById('m-objetivo').value);
+    const fechaObjetivo = document.getElementById('m-fecha-objetivo').value || null;
+    if (!nombre || !(montoObjetivo > 0)) return;
+
+    await addDoc(collection(db, 'usuarios', user.uid, 'metas'), {
+      nombre, montoObjetivo, montoAhorrado: 0, fechaObjetivo, creadoEn: serverTimestamp()
+    });
+    e.target.reset();
+    mostrarToast('Meta creada 🎯');
+  });
+
+  function renderizarMetas(uid) {
+    const listaMetas = document.getElementById('lista-metas');
+    if (!estado.metas.length) {
+      listaMetas.innerHTML = '<div class="bloque-lista vacio">Crea tu primera meta de ahorro arriba.</div>';
+      return;
+    }
+    listaMetas.innerHTML = estado.metas.map(m => {
+      const pct = m.montoObjetivo > 0 ? Math.min(100, Math.round((m.montoAhorrado / m.montoObjetivo) * 100)) : 0;
+      return `
+        <div class="tarjeta-meta">
+          <div class="meta-top">
+            <span class="meta-nombre">${escaparHtml(m.nombre)}</span>
+            <span class="meta-pct">${pct}%</span>
+          </div>
+          <div class="barra-progreso"><div class="barra-relleno" style="width:${pct}%"></div></div>
+          <div class="meta-cifras">
+            <span>${formatearMonedaBanco(m.montoAhorrado || 0)}</span>
+            <span>Meta: ${formatearMonedaBanco(m.montoObjetivo)}</span>
+          </div>
+          <form class="form-aporte-inline" data-meta-id="${m.id}">
+            <input type="text" class="input-dinero" inputmode="decimal" placeholder="Abonar (0,00)" required>
+            <button type="submit">+ Abonar</button>
+            <button type="button" class="btn-mini del" data-del-meta="${m.id}" style="padding:8px 10px;">✕</button>
+          </form>
+        </div>
+      `;
+    }).join('');
+
+    enlazarInputsDinero(listaMetas);
+    listaMetas.querySelectorAll('.form-aporte-inline').forEach(form => {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const val = parsearMontoBanco(form.querySelector('input').value);
+        if (!(val > 0)) return;
+        await updateDoc(doc(db, 'usuarios', uid, 'metas', form.dataset.metaId), { montoAhorrado: increment(val) });
+        mostrarToast('Abono guardado 💰');
+      });
+    });
+    listaMetas.querySelectorAll('[data-del-meta]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        await deleteDoc(doc(db, 'usuarios', uid, 'metas', btn.dataset.delMeta));
+        mostrarToast('Meta eliminada');
+      });
+    });
+  }
+
+  let unsubs = [];
+  onAuthStateChanged(auth, async (usuario) => {
+    pantallaCargando.classList.add('oculto');
+    unsubs.forEach(u => u());
+    unsubs = [];
+
+    if (usuario) {
+      pantallaAuth.classList.add('oculto');
+      pantallaDashboard.classList.remove('oculto');
+      const snap = await getDoc(doc(db, 'usuarios', usuario.uid));
+      document.getElementById('texto-saludo').textContent = `Hola, ${snap.exists() ? snap.data().nombre : 'Usuario'}`;
+
+      unsubs.push(onSnapshot(query(collection(db, 'usuarios', usuario.uid, 'deudas'), orderBy('creadoEn', 'desc')), s => {
+        estado.deudas = s.docs.map(d => ({ id: d.id, ...d.data() }));
+        actualizarSelectorMeses();
+        renderizarTodo(usuario.uid);
+      }));
+      unsubs.push(onSnapshot(query(collection(db, 'usuarios', usuario.uid, 'ingresos'), orderBy('creadoEn', 'desc')), s => {
+        estado.ingresos = s.docs.map(d => ({ id: d.id, ...d.data() }));
+        actualizarSelectorMeses();
+        renderizarTodo(usuario.uid);
+      }));
+      unsubs.push(onSnapshot(query(collection(db, 'usuarios', usuario.uid, 'metas'), orderBy('creadoEn', 'desc')), s => {
+        estado.metas = s.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderizarMetas(usuario.uid);
+      }));
+    } else {
+      pantallaDashboard.classList.add('oculto');
+      pantallaAuth.classList.remove('oculto');
+    }
+  });
+</script>
+</body>
+</html>
