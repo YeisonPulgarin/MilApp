@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Milap · tus finanzas</title>
+<title>MillApp · tus finanzas</title>
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -898,15 +898,15 @@
 
 <div id="pantalla-cargando">
   <div class="spinner"></div>
-  <span>Cargando Milap…</span>
+  <span>Cargando MillApp…</span>
 </div>
 
 <!-- ================= AUTH ================= -->
 <div id="pantalla-auth" class="oculto">
   <div class="auth-envoltura">
     <div class="marca-hero">
-      <img src="logo.png" alt="Logo Milap" class="logo-login">
-      <h1 class="marca">Milap</h1>
+      <img src="logo.png" alt="Logo MillApp" class="logo-login">
+      <h1 class="marca">MillApp</h1>
       <p class="subtitulo">Control real de tus gastos, deudas y abonos mensuales.</p>
     </div>
 
@@ -941,8 +941,8 @@
 <div id="pantalla-dashboard" class="oculto">
   <header class="encabezado">
     <div class="header-izq">
-      <img src="logo.png" alt="Logo Milap" class="logo-header">
-      <h1 class="marca">Milap</h1>
+      <img src="logo.png" alt="Logo MillApp" class="logo-header">
+      <h1 class="marca">MillApp</h1>
     </div>
     <div class="saludo-salir">
       <span id="texto-saludo">Hola</span>
@@ -1119,7 +1119,11 @@
       </div>
 
       <div class="fila-inputs-sheet">
+<<<<<<< HEAD
         <input type="text" id="rapido-desc" required placeholder="Concepto">
+=======
+        <input type="text" id="rapido-desc" required placeholder="Concepto (ej. Café, Mercado, Arriendo)">
+>>>>>>> eb9ce312fb7e7eb4b1157e8249ff426c1ef5db43
         <input type="date" id="rapido-fecha">
       </div>
 
@@ -1161,7 +1165,7 @@
     onAuthStateChanged, signOut
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
-    getFirestore, doc, setDoc, getDoc, collection, addDoc, query,
+    initializeFirestore, doc, setDoc, getDoc, collection, addDoc, query,
     orderBy, onSnapshot, updateDoc, deleteDoc, serverTimestamp, increment, arrayUnion
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -1221,7 +1225,9 @@
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const db = getFirestore(app);
+  const db = initializeFirestore(app, {
+    experimentalForceLongPolling: true
+  });;
 
   let estado = {
     deudas: [], ingresos: [], gastos: [], metas: [],
@@ -1348,7 +1354,7 @@
   const inputDescRapido = document.getElementById('rapido-desc');
   const inputFechaRapido = document.getElementById('rapido-fecha');
 
-  function abrirModal(tipo) {
+function abrirModal(tipo) {
     estado.tipoModal = tipo;
     document.getElementById('form-rapido').reset();
     document.getElementById('visor-preview-banco').textContent = 'Monto exacto: $ 0,00';
@@ -1377,18 +1383,29 @@
   document.getElementById('cerrar-modal').addEventListener('click', () => modalRegistro.classList.add('oculto'));
   modalRegistro.addEventListener('click', (e) => { if (e.target === modalRegistro) modalRegistro.classList.add('oculto'); });
 
-  document.querySelectorAll('.cat-opcion').forEach(btn => {
-    btn.addEventListener('click', () => {
-      btn.parentElement.querySelectorAll('.cat-opcion').forEach(b => b.classList.remove('seleccionada'));
-      btn.classList.add('seleccionada');
-      estado.subcategoriaModal = btn.dataset.val;
+  document.querySelectorAll('.grid-categorias').forEach(grid => {
+    grid.querySelectorAll('.cat-opcion').forEach(btn => {
+      btn.addEventListener('click', () => {
+        grid.querySelectorAll('.cat-opcion').forEach(b => b.classList.remove('seleccionada'));
+        btn.classList.add('seleccionada');
+        estado.subcategoriaModal = btn.dataset.val;
+      });
     });
   });
 
-  document.getElementById('form-rapido').addEventListener('submit', async (e) => {
+  document.getElementById('abrir-modal-deuda').addEventListener('click', () => abrirModal('deuda'));
+  document.getElementById('abrir-modal-ingreso').addEventListener('click', () => abrirModal('ingreso'));
+  document.getElementById('cerrar-modal').addEventListener('click', () => modalRegistro.classList.add('oculto'));
+  modalRegistro.addEventListener('click', (e) => { if (e.target === modalRegistro) modalRegistro.classList.add('oculto'); });
+
+document.getElementById('form-rapido').addEventListener('submit', async (e) => {
     e.preventDefault();
     const user = auth.currentUser;
-    if (!user) return;
+    if (!user) {
+      mostrarToast('Sesión expirada, vuelve a ingresar');
+      return;
+    }
+
     const monto = parsearMontoBanco(inputMontoRapido.value);
     const descripcion = inputDescRapido.value.trim();
     const fecha = inputFechaRapido.value || null;
@@ -1396,6 +1413,8 @@
 
     const btnGuardar = document.getElementById('btn-guardar-rapido');
     btnGuardar.disabled = true;
+    btnGuardar.textContent = 'Guardando...';
+
     try {
       if (estado.tipoModal === 'deuda') {
         if (estado.subcategoriaModal === 'gasto') {
@@ -1417,10 +1436,12 @@
         mostrarToast('Ingreso registrado ✓');
       }
       modalRegistro.classList.add('oculto');
-    } catch {
-      mostrarToast('Error al guardar');
+    } catch (err) {
+      console.error('Error completo de Firebase:', err);
+      mostrarToast(`Error: ${err.code || 'No se pudo guardar'}`);
     } finally {
       btnGuardar.disabled = false;
+      btnGuardar.textContent = 'Guardar registro';
     }
   });
 
@@ -1563,10 +1584,14 @@
         </div>
         <div class="saldo-box">
           <div class="valor-mov debo">− ${formatearMonedaBanco(g.monto)}</div>
+<<<<<<< HEAD
           <div style="margin-top:4px; display:flex; gap:4px; justify-content:flex-end;">
             <button type="button" class="btn-mini" data-edit-item="gastos" data-edit-id="${g.id}">Editar</button>
             <button type="button" class="btn-mini del" data-del-gasto="${g.id}">Borrar</button>
           </div>
+=======
+          <div style="margin-top:4px;"><button type="button" class="btn-mini del" data-del-gasto="${g.id}">Borrar</button></div>
+>>>>>>> eb9ce312fb7e7eb4b1157e8249ff426c1ef5db43
         </div>
       </div>
     `;
